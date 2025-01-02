@@ -1,0 +1,27 @@
+# permissions for end users to edit vlans.
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRole
+metadata:
+  labels:
+    app.kubernetes.io/name: kubeifce
+    app.kubernetes.io/managed-by: kustomize
+  name: vlan-editor-role
+rules:
+- apiGroups:
+  - interface.kubeifce.lwsec.cn
+  resources:
+  - vlans
+  verbs:
+  - create
+  - delete
+  - get
+  - list
+  - patch
+  - update
+  - watch
+- apiGroups:
+  - interface.kubeifce.lwsec.cn
+  resources:
+  - vlans/status
+  verbs:
+  - get
