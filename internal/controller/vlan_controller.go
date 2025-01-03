@@ -19,15 +19,15 @@ package controller
 import (
 	"context"
 	"fmt"
-	corev1 "k8s.io/api/core/v1"
 	"os/exec"
-	"sigs.k8s.io/controller-runtime/pkg/controller/controllerutil"
 	"time"
 
+	corev1 "k8s.io/api/core/v1"
 	"k8s.io/apimachinery/pkg/runtime"
 	"k8s.io/client-go/tools/record"
 	ctrl "sigs.k8s.io/controller-runtime"
 	"sigs.k8s.io/controller-runtime/pkg/client"
+	"sigs.k8s.io/controller-runtime/pkg/controller/controllerutil"
 	"sigs.k8s.io/controller-runtime/pkg/log"
 
 	interfacev1 "github.com/05sec/kubeifce/api/v1"
@@ -124,7 +124,7 @@ func (r *VlanReconciler) createOrUpdateVlanInterface(ctx context.Context, vlan *
 
 	// Execute command to create VLAN interface
 	cmd := fmt.Sprintf("ip link add link %s name %s type vlan id %d",
-		vlan.Spec.Master, *vlan.Spec.Name, *vlan.Spec.ID)
+		*vlan.Spec.Master, *vlan.Spec.Name, *vlan.Spec.ID)
 	if vlan.Spec.MTU != nil {
 		cmd += fmt.Sprintf(" mtu %d", *vlan.Spec.MTU)
 	}
