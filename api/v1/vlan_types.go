@@ -69,10 +69,9 @@ type VlanStatus struct {
 	Name string `json:"name"`
 }
 
+// Vlan is the Schema for the vlans API.
 // +kubebuilder:object:root=true
 // +kubebuilder:subresource:status
-
-// Vlan is the Schema for the vlans API.
 type Vlan struct {
 	metav1.TypeMeta   `json:",inline"`
 	metav1.ObjectMeta `json:"metadata,omitempty"`
@@ -81,9 +80,8 @@ type Vlan struct {
 	Status VlanStatus `json:"status,omitempty"`
 }
 
-// +kubebuilder:object:root=true
-
 // VlanList contains a list of Vlan.
+// +kubebuilder:object:root=true
 type VlanList struct {
 	metav1.TypeMeta `json:",inline"`
 	metav1.ListMeta `json:"metadata,omitempty"`

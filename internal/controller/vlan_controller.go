@@ -19,9 +19,10 @@ package controller
 import (
 	"context"
 	"fmt"
-	"os/exec"
-
 	corev1 "k8s.io/api/core/v1"
+	"os/exec"
+	"sigs.k8s.io/controller-runtime/pkg/controller/controllerutil"
+	"time"
 
 	"k8s.io/apimachinery/pkg/runtime"
 	"k8s.io/client-go/tools/record"
@@ -66,15 +67,32 @@ func (r *VlanReconciler) Reconcile(ctx context.Context, req ctrl.Request) (ctrl.
 		return ctrl.Result{}, nil
 	}
 
+	log.Info("reconcile Vlan", "vlan", vlan.Spec.Name, "node", r.NodeName)
+
 	// Check if the object is being deleted
-	if !vlan.ObjectMeta.DeletionTimestamp.IsZero() {
-		r.Recorder.Event(vlan, corev1.EventTypeNormal, "DeletingVlanInterface", "Deleting VLAN interface")
-		// Handle deletion
-		if err := r.deleteVlanInterface(ctx, vlan); err != nil {
-			r.Recorder.Event(vlan, corev1.EventTypeWarning, "FailedDeletingVlanInterface", err.Error())
-			log.Error(err, "failed to delete VLAN interface")
-			return ctrl.Result{}, err
+
+	finalizerName := "vlan.interface.kubeifce.lwsec.cn/finalizer"
+	// 如果对象还没被删除且没有设定finalizer 则进行设定
+	if vlan.ObjectMeta.DeletionTimestamp.IsZero() {
+		if !controllerutil.ContainsFinalizer(vlan, finalizerName) {
+			vlan.ObjectMeta.Finalizers = append(vlan.ObjectMeta.Finalizers, finalizerName)
+			if err := r.Update(ctx, vlan); err != nil {
+				log.Error(err, "failed to add finalizer")
+				return ctrl.Result{RequeueAfter: time.Second * 5}, err
+			}
 		}
+	} else {
+		if controllerutil.ContainsFinalizer(vlan, finalizerName) {
+			r.Recorder.Event(vlan, corev1.EventTypeNormal, "DeletingVlanInterface", "Deleting VLAN interface")
+			// Handle deletion
+			if err := r.deleteVlanInterface(ctx, vlan); err != nil {
+				r.Recorder.Event(vlan, corev1.EventTypeWarning, "FailedDeletingVlanInterface", err.Error())
+				log.Error(err, "failed to delete VLAN interface")
+				return ctrl.Result{}, err
+			}
+			return ctrl.Result{}, nil
+		}
+		// 如果对象被删除则停止后续步骤
 		return ctrl.Result{}, nil
 	}
 
@@ -82,14 +100,14 @@ func (r *VlanReconciler) Reconcile(ctx context.Context, req ctrl.Request) (ctrl.
 	if err := r.createOrUpdateVlanInterface(ctx, vlan); err != nil {
 		r.Recorder.Event(vlan, corev1.EventTypeWarning, "FailedCreateOrUpdateVlanInterface", err.Error())
 		log.Error(err, "failed to create/update VLAN interface")
-		return ctrl.Result{}, err
+		return ctrl.Result{RequeueAfter: time.Second * 10}, err
 	}
 
 	// Update status
 	if err := r.updateStatus(ctx, vlan); err != nil {
 		r.Recorder.Event(vlan, corev1.EventTypeWarning, "FailedUpdateStatus", err.Error())
 		log.Error(err, "failed to update status")
-		return ctrl.Result{}, err
+		return ctrl.Result{RequeueAfter: time.Second * 5}, err
 	}
 
 	return ctrl.Result{}, nil
@@ -100,7 +118,7 @@ func (r *VlanReconciler) createOrUpdateVlanInterface(ctx context.Context, vlan *
 
 	// Generate interface name if not specified
 	if vlan.Spec.Name == nil || *vlan.Spec.Name == "" {
-		name := fmt.Sprintf("ki.%s.%d", vlan.Spec.Master, *vlan.Spec.ID)
+		name := fmt.Sprintf("ki.%s.%d", *vlan.Spec.Master, *vlan.Spec.ID)
 		vlan.Spec.Name = &name
 	}
 
