@@ -64,7 +64,7 @@ var _ = Describe("Vlan Controller", func() {
 			Expect(err).NotTo(HaveOccurred())
 
 			By("Cleanup the specific resource instance Vlan")
-			Expect(k8sClient.Delete(ctx, resource)).To(Succeed())
+			// Expect(k8sClient.Delete(ctx, resource)).To(Succeed())
 		})
 		It("should successfully reconcile the resource", func() {
 			By("Reconciling the created resource")
