@@ -18,6 +18,7 @@ package controller
 
 import (
 	"context"
+	"k8s.io/client-go/tools/record"
 
 	. "github.com/onsi/ginkgo/v2"
 	. "github.com/onsi/gomega"
@@ -64,13 +65,14 @@ var _ = Describe("Vlan Controller", func() {
 			Expect(err).NotTo(HaveOccurred())
 
 			By("Cleanup the specific resource instance Vlan")
-			// Expect(k8sClient.Delete(ctx, resource)).To(Succeed())
+			Expect(k8sClient.Delete(ctx, resource)).To(Succeed())
 		})
 		It("should successfully reconcile the resource", func() {
 			By("Reconciling the created resource")
 			controllerReconciler := &VlanReconciler{
-				Client: k8sClient,
-				Scheme: k8sClient.Scheme(),
+				Client:   k8sClient,
+				Scheme:   k8sClient.Scheme(),
+				Recorder: &record.FakeRecorder{},
 			}
 
 			_, err := controllerReconciler.Reconcile(ctx, reconcile.Request{
