@@ -89,7 +89,7 @@ func (r *VlanReconciler) Reconcile(ctx context.Context, req ctrl.Request) (ctrl.
 			if err := r.deleteVlanInterface(ctx, vlan); err != nil {
 				r.Recorder.Event(vlan, corev1.EventTypeWarning, "FailedDeletingVlanInterface", err.Error())
 				log.Error(err, "failed to delete VLAN interface")
-				//return ctrl.Result{}, err
+				return ctrl.Result{RequeueAfter: time.Second * 5}, err
 			}
 
 			// remove our finalizer from the list and update it.
@@ -120,7 +120,7 @@ func (r *VlanReconciler) Reconcile(ctx context.Context, req ctrl.Request) (ctrl.
 }
 
 func (r *VlanReconciler) getNextAvailableVlanID(ctx context.Context, master string) (int, error) {
-	cmd := exec.Command("ip", "-j", "-d", "link", "show", "type", "vlan")
+	cmd := exec.CommandContext(ctx, "ip", "-j", "-d", "link", "show", "type", "vlan")
 	output, err := cmd.Output()
 	if err != nil {
 		return 0, fmt.Errorf("failed to get VLAN interfaces: %v", err)
