@@ -38,10 +38,10 @@ type VxlanStatus struct {
 	// Important: Run "make" to regenerate code after modifying this file
 }
 
+// Vxlan is the Schema for the vxlans API.
 // +kubebuilder:object:root=true
 // +kubebuilder:subresource:status
-
-// Vxlan is the Schema for the vxlans API.
+// +kubebuilder:resource:scope=Cluster
 type Vxlan struct {
 	metav1.TypeMeta   `json:",inline"`
 	metav1.ObjectMeta `json:"metadata,omitempty"`
@@ -50,9 +50,8 @@ type Vxlan struct {
 	Status VxlanStatus `json:"status,omitempty"`
 }
 
+// VxlanList contains a lis`t of Vxlan.
 // +kubebuilder:object:root=true
-
-// VxlanList contains a list of Vxlan.
 type VxlanList struct {
 	metav1.TypeMeta `json:",inline"`
 	metav1.ListMeta `json:"metadata,omitempty"`
