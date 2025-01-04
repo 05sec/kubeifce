@@ -35,9 +35,7 @@ type VlanSpec struct {
 	// Name of the VLAN interface
 	// defaults format: ki.<master>.<vlan-ID>
 	// +kubebuilder:validation:Optional
-	// +kubebuilder:validation:MinLength=1
-	// +kubebuilder:validation:MaxLength=10
-	// +kubebuilder:validation:Pattern="^[a-zA-Z0-9-]+$"
+	// +kubebuilder:validation:MaxLength=15
 	Name *string `json:"name,omitempty"`
 
 	// VLAN ID (1-4094)
@@ -47,7 +45,7 @@ type VlanSpec struct {
 	ID *int `json:"id,omitempty"`
 
 	// Master interface name
-	// +kubebuilder:validation:Required
+	// +kubebuilder:validation:Optional
 	Master *string `json:"master,omitempty"`
 
 	// MTU size for the VLAN interface

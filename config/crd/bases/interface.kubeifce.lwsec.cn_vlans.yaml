@@ -12,7 +12,7 @@ spec:
     listKind: VlanList
     plural: vlans
     singular: vlan
-  scope: Cluster
+  scope: Namespaced
   versions:
   - name: v1
     schema:
@@ -58,15 +58,12 @@ spec:
                 description: |-
                   Name of the VLAN interface
                   defaults format: ki.<master>.<vlan-ID>
-                maxLength: 10
-                minLength: 1
-                pattern: ^[a-zA-Z0-9-]+$
+                maxLength: 15
                 type: string
               nodeName:
                 description: NodeName that the VLAN interface is created on
                 type: string
             required:
-            - master
             - nodeName
             type: object
           status:

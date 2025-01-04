@@ -12,7 +12,7 @@ spec:
     listKind: VxlanList
     plural: vxlans
     singular: vxlan
-  scope: Cluster
+  scope: Namespaced
   versions:
   - name: v1
     schema:

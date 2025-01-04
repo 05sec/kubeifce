@@ -18,6 +18,7 @@ package controller
 
 import (
 	"context"
+	"encoding/json"
 	"fmt"
 	"os/exec"
 	"time"
@@ -63,11 +64,11 @@ func (r *VlanReconciler) Reconcile(ctx context.Context, req ctrl.Request) (ctrl.
 
 	// check if the vlan belongs to this node
 	if vlan.Spec.NodeName != r.NodeName {
-		log.Info("vlan not belongs to this node", "vlan", vlan.Spec.Name, "node", r.NodeName)
+		log.Info("vlan not belongs to this node", "vlan", vlan.ObjectMeta.Name, "node", r.NodeName)
 		return ctrl.Result{}, nil
 	}
 
-	log.Info("reconcile Vlan", "vlan", vlan.Spec.Name, "node", r.NodeName)
+	log.Info("reconcile Vlan", "vlan", vlan.ObjectMeta.Name, "node", r.NodeName)
 
 	// Check if the object is being deleted
 
@@ -88,9 +89,14 @@ func (r *VlanReconciler) Reconcile(ctx context.Context, req ctrl.Request) (ctrl.
 			if err := r.deleteVlanInterface(ctx, vlan); err != nil {
 				r.Recorder.Event(vlan, corev1.EventTypeWarning, "FailedDeletingVlanInterface", err.Error())
 				log.Error(err, "failed to delete VLAN interface")
+				//return ctrl.Result{}, err
+			}
+
+			// remove our finalizer from the list and update it.
+			controllerutil.RemoveFinalizer(vlan, finalizerName)
+			if err := r.Update(ctx, vlan); err != nil {
 				return ctrl.Result{}, err
 			}
-			return ctrl.Result{}, nil
 		}
 		// 如果对象被删除则停止后续步骤
 		return ctrl.Result{}, nil
@@ -113,18 +119,98 @@ func (r *VlanReconciler) Reconcile(ctx context.Context, req ctrl.Request) (ctrl.
 	return ctrl.Result{}, nil
 }
 
+func (r *VlanReconciler) getNextAvailableVlanID(ctx context.Context, master string) (int, error) {
+	cmd := exec.Command("ip", "-j", "-d", "link", "show", "type", "vlan")
+	output, err := cmd.Output()
+	if err != nil {
+		return 0, fmt.Errorf("failed to get VLAN interfaces: %v", err)
+	}
+
+	type VlanLink struct {
+		Ifname   string `json:"ifname"`
+		Link     string `json:"link"`
+		Linkinfo struct {
+			InfoData struct {
+				ID int `json:"id"`
+			} `json:"info_data"`
+		} `json:"linkinfo"`
+	}
+
+	var interfaces []VlanLink
+	if err := json.Unmarshal(output, &interfaces); err != nil {
+		return 0, fmt.Errorf("failed to parse VLAN interfaces: %v", err)
+	}
+
+	// 创建已使用ID的map，只统计指定物理接口上的VLAN ID
+	usedIDs := make(map[int]bool)
+	for _, iface := range interfaces {
+		if iface.Link == master {
+			usedIDs[iface.Linkinfo.InfoData.ID] = true
+		}
+	}
+
+	// 从1开始查找第一个未使用的ID
+	for id := 1; id <= 4094; id++ {
+		if !usedIDs[id] {
+			return id, nil
+		}
+	}
+
+	return 0, fmt.Errorf("no available VLAN IDs for interface %s", master)
+}
+
 func (r *VlanReconciler) createOrUpdateVlanInterface(ctx context.Context, vlan *interfacev1.Vlan) error {
 	log := log.FromContext(ctx)
 
+	// 将分配的ID保存到annotation
+	if vlan.Annotations == nil {
+		vlan.Annotations = make(map[string]string)
+	}
+
+	// 确定master接口
+	master := "eth0"
+	if vlan.Spec.Master != nil && *vlan.Spec.Master != "" {
+		master = *vlan.Spec.Master
+	}
+	vlan.Annotations["kubeifce.lwsec.cn/master"] = master
+
+	// 获取实际使用的VLAN ID
+	var vlanID int
+	const vlanIDAnnotation = "kubeifce.lwsec.cn/vlan-id"
+
+	if vlan.Spec.ID != nil {
+		// 如果用户指定了ID，直接使用
+		vlanID = *vlan.Spec.ID
+	} else {
+		// 检查annotation中是否已有分配的ID
+		if idStr, exists := vlan.Annotations[vlanIDAnnotation]; exists {
+			if _, err := fmt.Sscanf(idStr, "%d", &vlanID); err != nil {
+				return fmt.Errorf("invalid vlan id in annotation: %v", err)
+			}
+		} else {
+			// 自动分配新的ID，基于master接口
+			id, err := r.getNextAvailableVlanID(ctx, master)
+			if err != nil {
+				return fmt.Errorf("failed to get next available VLAN ID: %v", err)
+			}
+			vlanID = id
+
+			vlan.Annotations[vlanIDAnnotation] = fmt.Sprintf("%d", vlanID)
+
+		}
+	}
+	vlan.Annotations["kubeifce.lwsec.cn/vlan-id"] = fmt.Sprintf("%d", vlanID)
+
 	// Generate interface name if not specified
 	if vlan.Spec.Name == nil || *vlan.Spec.Name == "" {
-		name := fmt.Sprintf("ki.%s.%d", *vlan.Spec.Master, *vlan.Spec.ID)
+		name := fmt.Sprintf("ki.%s.%d", master, vlanID)
 		vlan.Spec.Name = &name
 	}
+	vlan.Annotations["kubeifce.lwsec.cn/interface-name"] = *vlan.Spec.Name
 
 	// Execute command to create VLAN interface
 	cmd := fmt.Sprintf("ip link add link %s name %s type vlan id %d",
-		*vlan.Spec.Master, *vlan.Spec.Name, *vlan.Spec.ID)
+		master, *vlan.Spec.Name, vlanID)
 	if vlan.Spec.MTU != nil {
 		cmd += fmt.Sprintf(" mtu %d", *vlan.Spec.MTU)
 	}
@@ -134,26 +220,31 @@ func (r *VlanReconciler) createOrUpdateVlanInterface(ctx context.Context, vlan *
 		return fmt.Errorf("failed to create VLAN interface: %v, output: %s", err, string(out))
 	}
 
-	log.Info("create VLAN interface", "interface", *vlan.Spec.Name)
+	log.Info("create VLAN interface", "interface", vlan.ObjectMeta.Name, "vlan_id", vlanID, "master", master)
+
+	if err := r.Update(ctx, vlan); err != nil {
+		return fmt.Errorf("failed to update VLAN with annotation: %v", err)
+	}
 	return nil
 }
 
 func (r *VlanReconciler) deleteVlanInterface(ctx context.Context, vlan *interfacev1.Vlan) error {
 	log := log.FromContext(ctx)
 
-	if vlan.Spec.Name == nil {
+	if vlan.Annotations == nil || vlan.Annotations["kubeifce.lwsec.cn/interface-name"] == "" {
 		return nil
 	}
+	interfaceName := vlan.Annotations["kubeifce.lwsec.cn/interface-name"]
 
 	// Execute command to delete VLAN interface
-	cmd := fmt.Sprintf("ip link delete %s", *vlan.Spec.Name)
+	cmd := fmt.Sprintf("ip link delete %s", interfaceName)
 
 	// 直接执行命令
 	if out, err := exec.Command("sh", "-c", cmd).CombinedOutput(); err != nil {
 		return fmt.Errorf("failed to delete VLAN interface: %v, output: %s", err, string(out))
 	}
 
-	log.Info("delete VLAN interface", "interface", *vlan.Spec.Name)
+	log.Info("delete VLAN interface", "interface", interfaceName)
 	return nil
 }
 
