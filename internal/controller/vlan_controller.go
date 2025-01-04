@@ -242,16 +242,16 @@ func (r *VlanReconciler) deleteVlanInterface(ctx context.Context, vlan *interfac
 	return nil
 }
 
-func (r *VlanReconciler) updateStatus(ctx context.Context, vlan *interfacev1.Vlan) error {
-	// TODO: Check actual interface status and update
-	vlan.Status.Name = *vlan.Spec.Name
-	vlan.Status.State = "up"
-
-	if err := r.Status().Update(ctx, vlan); err != nil {
-		return err
-	}
-	return nil
-}
+// func (r *VlanReconciler) updateStatus(ctx context.Context, vlan *interfacev1.Vlan) error {
+//	// TODO: Check actual interface status and update
+//	vlan.Status.Name = *vlan.Spec.Name
+//	vlan.Status.State = "up"
+//
+//	if err := r.Status().Update(ctx, vlan); err != nil {
+//		return err
+//	}
+//	return nil
+// }
 
 // SetupWithManager sets up the controller with the Manager.
 func (r *VlanReconciler) SetupWithManager(mgr ctrl.Manager) error {
