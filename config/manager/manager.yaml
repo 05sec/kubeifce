@@ -10,7 +10,7 @@ metadata:
 apiVersion: apps/v1
 kind: DaemonSet
 metadata:
-  name: controller-manager
+  name: controller-ds
   namespace: system
   labels:
     control-plane: controller-manager
@@ -22,8 +22,6 @@ spec:
       control-plane: controller-manager
   template:
     metadata:
-      annotations:
-        kubectl.kubernetes.io/default-container: manager
       labels:
         control-plane: controller-manager
     spec:
@@ -54,7 +52,7 @@ spec:
           - --leader-elect
           - --health-probe-bind-address=:8081
           - --metrics-bind-address=:8443
-        image: controller:latest
+        image: ghcr.io/05sec/kubeifce:latest
         name: manager
         securityContext:
           privileged: true

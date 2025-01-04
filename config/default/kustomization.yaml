@@ -39,7 +39,7 @@ patches:
 # More info: https://book.kubebuilder.io/reference/metrics
 - path: manager_metrics_patch.yaml
   target:
-    kind: Deployment
+    kind: DaemonSet
 
 # [WEBHOOK] To enable webhook, uncomment all the sections with [WEBHOOK] prefix including the one in
 # crd/kustomization.yaml
