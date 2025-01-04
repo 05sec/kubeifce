@@ -108,13 +108,7 @@ func (r *VlanReconciler) Reconcile(ctx context.Context, req ctrl.Request) (ctrl.
 		log.Error(err, "failed to create/update VLAN interface")
 		return ctrl.Result{RequeueAfter: time.Second * 10}, err
 	}
-
-	// Update status
-	if err := r.updateStatus(ctx, vlan); err != nil {
-		r.Recorder.Event(vlan, corev1.EventTypeWarning, "FailedUpdateStatus", err.Error())
-		log.Error(err, "failed to update status")
-		return ctrl.Result{RequeueAfter: time.Second * 5}, err
-	}
+	r.Recorder.Event(vlan, corev1.EventTypeNormal, "CreatedOrUpdatedVlanInterface", "Created/Updated VLAN interface")
 
 	return ctrl.Result{}, nil
 }
