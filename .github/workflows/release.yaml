@@ -104,6 +104,7 @@ jobs:
               with:
                   images: ghcr.io/${{ github.repository }}
                   tags: |
+                      type=raw,value=latest
                       type=pep440,pattern={{version}},value=${{ needs.release.outputs.new-release-version }}
             - name: Set up QEMU
               uses: docker/setup-qemu-action@v3
