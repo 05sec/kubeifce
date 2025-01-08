@@ -32,12 +32,6 @@ type VlanSpec struct {
 	// +kubebuilder:validation:Required
 	NodeName string `json:"nodeName"`
 
-	// Name of the VLAN interface
-	// defaults format: ki.<master>.<vlan-ID>
-	// +kubebuilder:validation:Optional
-	// +kubebuilder:validation:MaxLength=15
-	Name *string `json:"name,omitempty"`
-
 	// VLAN ID (1-4094)
 	// +kubebuilder:validation:Optional
 	// +kubebuilder:validation:Minimum=1
@@ -64,7 +58,15 @@ type VlanStatus struct {
 	// Current state of the VLAN interface (up/down)
 	State string `json:"state"`
 
+	// ki.<md5(master)[:7]>.<vlan-ID>
 	Name string `json:"name"`
+
+	// Represents the observations of a VLAN's current state.
+	// +patchMergeKey=type
+	// +patchStrategy=merge
+	// +listType=map
+	// +listMapKey=type
+	Conditions []metav1.Condition `json:"conditions,omitempty" patchStrategy:"merge" patchMergeKey:"type"`
 }
 
 // Vlan is the Schema for the vlans API.

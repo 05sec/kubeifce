@@ -1,9 +1,12 @@
 apiVersion: interface.kubeifce.lwsec.cn/v1
 kind: Vlan
 metadata:
+  name: vlan-sample
   labels:
     app.kubernetes.io/name: kubeifce
     app.kubernetes.io/managed-by: kustomize
-  name: vlan-sample
 spec:
-  # TODO(user): Add fields here
+  nodeName: node-1  # 指定节点名称
+  id: 100           # 可选，VLAN ID
+  master: eth0      # 可选，父接口名称
+  mtu: 1496         # 可选，MTU大小
