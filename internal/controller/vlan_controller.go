@@ -66,17 +66,25 @@ var defaultVlanConf = netifce.Vlan{
 func (r *VlanReconciler) Reconcile(ctx context.Context, req ctrl.Request) (ctrl.Result, error) {
 	log := log.FromContext(ctx)
 
+	log.Info("Reconcile started", "namespace", req.Namespace, "name", req.Name)
+
 	// 获取CRD中所有vlan配置
 	var crdVlans interfacev1.VlanList
+	log.Info("list VLAN CRDs")
 	if err := r.List(ctx, &crdVlans); err != nil {
+		log.Error(err, "failed to list VLAN CRDs", "namespace", req.Namespace, "name", req.Name)
 		return ctrl.Result{}, fmt.Errorf("failed to list VLAN CRDs: %v", err)
 	}
+	log.Info("list VLAN CRDs completed", "count", len(crdVlans.Items), "node", r.NodeName)
 
 	// 获取节点上实际存在的vlan接口
+	log.Info("get node VLAN interfaces")
 	nodeVlans, err := r.VlanManager.List(ctx)
 	if err != nil {
+		log.Error(err, "failed to get node VLAN interfaces", "node", r.NodeName)
 		return ctrl.Result{}, fmt.Errorf("failed to get node VLAN interfaces: %v", err)
 	}
+	log.Info("get node VLAN interfaces completed", "count", len(nodeVlans), "node", r.NodeName)
 
 	finalizerName := "vlan.interface.kubeifce.lwsec.cn/finalizer"
 
@@ -86,6 +94,7 @@ func (r *VlanReconciler) Reconcile(ctx context.Context, req ctrl.Request) (ctrl.
 	// 创建CRD中有但节点上没有的接口
 	for _, crdVlan := range crdVlans.Items {
 		if crdVlan.Spec.NodeName != r.NodeName {
+			log.Info("skip vlan for other node", "node", crdVlan.Spec.NodeName)
 			continue
 		}
 
@@ -93,12 +102,14 @@ func (r *VlanReconciler) Reconcile(ctx context.Context, req ctrl.Request) (ctrl.
 			if !controllerutil.ContainsFinalizer(&crdVlan, finalizerName) {
 				crdVlan.ObjectMeta.Finalizers = append(crdVlan.ObjectMeta.Finalizers, finalizerName)
 				if err := r.Update(ctx, &crdVlan); err != nil {
-					log.Error(err, "failed to add finalizer")
+					log.Error(err, "failed to add finalizer", "vlan", crdVlan.Name)
 					return ctrl.Result{RequeueAfter: time.Second * 5}, err
 				}
+				log.Info("finalizer added", "vlan", crdVlan.Name)
 			}
 		} else {
 			if controllerutil.ContainsFinalizer(&crdVlan, finalizerName) {
+				log.Info("handle VLAN interface delete")
 				r.Recorder.Event(&crdVlan, corev1.EventTypeNormal, "DeletingVlanInterface", "Deleting VLAN interface")
 
 				err = r.VlanManager.Delete(ctx, crdVlan.Annotations[InterfaceNameAnnotation])
@@ -168,6 +179,7 @@ func (r *VlanReconciler) Reconcile(ctx context.Context, req ctrl.Request) (ctrl.
 		if err = r.Update(ctx, &crdVlan); err != nil {
 			return ctrl.Result{}, err
 		}
+		log.Info("create VLAN interface completed", "interface", crdVlanConv.Name)
 	}
 
 	// 删除节点上有但CRD中没有的ki.开头接口
