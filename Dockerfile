@@ -30,4 +30,6 @@ FROM alpine:latest
 WORKDIR /
 COPY --from=builder /workspace/manager .
 
+RUN apk add --no-cache iproute2
+
 ENTRYPOINT ["/manager"]
