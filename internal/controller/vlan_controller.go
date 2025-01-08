@@ -23,6 +23,7 @@ import (
 	"strings"
 	"time"
 
+	"github.com/05sec/kubeifce/pkg/netifce"
 	"github.com/samber/lo"
 	corev1 "k8s.io/api/core/v1"
 	"k8s.io/apimachinery/pkg/runtime"
@@ -33,7 +34,6 @@ import (
 	"sigs.k8s.io/controller-runtime/pkg/log"
 
 	interfacev1 "github.com/05sec/kubeifce/api/v1"
-	"github.com/05sec/kubeifce/pkg/netifce"
 )
 
 const (

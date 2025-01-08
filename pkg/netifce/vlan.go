@@ -4,10 +4,9 @@ import (
 	"context"
 	"encoding/json"
 	"fmt"
+	"github.com/pkg/errors"
 	"os/exec"
 	"strings"
-
-	"github.com/pkg/errors"
 )
 
 type Vlan struct {
