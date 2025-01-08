@@ -98,16 +98,7 @@ func (r *VlanReconciler) Reconcile(ctx context.Context, req ctrl.Request) (ctrl.
 			continue
 		}
 
-		if crdVlan.ObjectMeta.DeletionTimestamp.IsZero() {
-			if !controllerutil.ContainsFinalizer(&crdVlan, finalizerName) {
-				crdVlan.ObjectMeta.Finalizers = append(crdVlan.ObjectMeta.Finalizers, finalizerName)
-				if err := r.Update(ctx, &crdVlan); err != nil {
-					log.Error(err, "failed to add finalizer", "vlan", crdVlan.Name)
-					return ctrl.Result{RequeueAfter: time.Second * 5}, err
-				}
-				log.Info("finalizer added", "vlan", crdVlan.Name)
-			}
-		} else {
+		if !crdVlan.ObjectMeta.DeletionTimestamp.IsZero() {
 			if controllerutil.ContainsFinalizer(&crdVlan, finalizerName) {
 				log.Info("handle VLAN interface delete")
 				r.Recorder.Event(&crdVlan, corev1.EventTypeNormal, "DeletingVlanInterface", "Deleting VLAN interface")
@@ -176,6 +167,11 @@ func (r *VlanReconciler) Reconcile(ctx context.Context, req ctrl.Request) (ctrl.
 		crdVlan.Annotations[InterfaceNameAnnotation] = crdVlanConv.Name
 		crdVlan.Annotations[VlanIDAnnotation] = fmt.Sprintf("%d", crdVlanConv.Id)
 		crdVlan.Annotations[VlanMasterAnnotation] = crdVlanConv.Master
+		// 创建成功后再加finalizer
+		if !controllerutil.ContainsFinalizer(&crdVlan, finalizerName) {
+			crdVlan.ObjectMeta.Finalizers = append(crdVlan.ObjectMeta.Finalizers, finalizerName)
+			log.Info("finalizer added", "vlan", crdVlan.Name)
+		}
 		if err = r.Update(ctx, &crdVlan); err != nil {
 			return ctrl.Result{}, err
 		}

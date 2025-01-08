@@ -126,15 +126,20 @@ func (m *VlanManager) Create(ctx context.Context, vlan *Vlan) error {
 		"name", vlan.Name,
 		"type", "vlan",
 		"id", fmt.Sprintf("%d", vlan.Id)}
-	if vlan.MTU > 0 {
-		args = append(args, "mtu", fmt.Sprintf("%d", vlan.MTU))
-	}
 
 	// 创建VLAN接口
 	cmd := exec.CommandContext(ctx, "ip", args...)
 	if err := cmd.Run(); err != nil {
 		out, _ := cmd.CombinedOutput()
 		return errors.Wrap(errors.Wrap(err, string(out)), "failed to create VLAN interface")
+	}
+
+	if vlan.MTU > 0 {
+		cmd = exec.CommandContext(ctx, "ip", "link", "set", "dev", vlan.Name, "mtu", fmt.Sprintf("%d", vlan.MTU))
+		if err := cmd.Run(); err != nil {
+			out, _ := cmd.CombinedOutput()
+			return errors.Wrap(errors.Wrap(err, string(out)), "failed to set VLAN interface MTU")
+		}
 	}
 
 	// 启用接口
