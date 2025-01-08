@@ -57,6 +57,7 @@ func (m *VlanManager) List(ctx context.Context) ([]*Vlan, error) {
 	cmd := exec.CommandContext(ctx, "ip", "-j", "-d", "link", "show", "type", "vlan")
 	output, err := cmd.Output()
 	if err != nil {
+
 		return nil, errors.Wrap(err, "failed to get VLAN interfaces")
 	}
 	var interfaces []IpShowVlan
@@ -80,7 +81,8 @@ func (m *VlanManager) Get(ctx context.Context, name string) (*Vlan, error) {
 	cmd := exec.CommandContext(ctx, "ip", "-j", "-d", "link", "show", name)
 	output, err := cmd.Output()
 	if err != nil {
-		return nil, errors.Wrap(err, "failed to get VLAN interface")
+		out, _ := cmd.CombinedOutput()
+		return nil, errors.Wrap(errors.Wrap(err, string(out)), "failed to get VLAN interface")
 	}
 	var interfaces []IpShowVlan
 	if err := json.Unmarshal(output, &interfaces); err != nil {
@@ -131,13 +133,15 @@ func (m *VlanManager) Create(ctx context.Context, vlan *Vlan) error {
 	// 创建VLAN接口
 	cmd := exec.CommandContext(ctx, "ip", args...)
 	if err := cmd.Run(); err != nil {
-		return errors.Wrap(err, "failed to create VLAN interface")
+		out, _ := cmd.CombinedOutput()
+		return errors.Wrap(errors.Wrap(err, string(out)), "failed to create VLAN interface")
 	}
 
 	// 启用接口
 	cmd = exec.CommandContext(ctx, "ip", "link", "set", "dev", vlan.Name, "up")
 	if err := cmd.Run(); err != nil {
-		return errors.Wrap(err, "failed to set VLAN interface up")
+		out, _ := cmd.CombinedOutput()
+		return errors.Wrap(errors.Wrap(err, string(out)), "failed to set VLAN interface up")
 	}
 
 	return nil
@@ -158,8 +162,9 @@ func (m *VlanManager) Update(ctx context.Context, vlan *Vlan) error {
 	// 如果MTU发生变化，更新MTU
 	if vlan.MTU > 0 && vlan.MTU != existing.MTU {
 		cmd := exec.CommandContext(ctx, "ip", "link", "set", "dev", vlan.Name, "mtu", fmt.Sprintf("%d", vlan.MTU))
-		if err := cmd.Run(); err != nil {
-			return errors.Wrap(err, "failed to update VLAN interface MTU")
+		if err = cmd.Run(); err != nil {
+			out, _ := cmd.CombinedOutput()
+			return errors.Wrap(errors.Wrap(err, string(out)), "failed to update VLAN interface MTU")
 		}
 	}
 
@@ -183,8 +188,9 @@ func (m *VlanManager) Delete(ctx context.Context, name string) error {
 
 	// 删除接口
 	cmd := exec.CommandContext(ctx, "ip", "link", "delete", name)
-	if err := cmd.Run(); err != nil {
-		return errors.Wrap(err, "failed to delete VLAN interface")
+	if err = cmd.Run(); err != nil {
+		out, _ := cmd.CombinedOutput()
+		return errors.Wrap(errors.Wrap(err, string(out)), "failed to delete VLAN interface")
 	}
 
 	return nil
