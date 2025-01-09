@@ -80,7 +80,7 @@ func (r *VxlanReconciler) Reconcile(ctx context.Context, req ctrl.Request) (ctrl
 	}
 	log.Info("get node VXLAN interfaces completed", "count", len(nodeVxlans), "node", r.NodeName)
 
-	//finalizerName := "vxlan.interface.kubeifce.lwsec.cn/finalizer"
+	// finalizerName := "vxlan.interface.kubeifce.lwsec.cn/finalizer"
 
 	// 同步CRD和实际接口状态
 	for _, crdVxlan := range crdVxlans.Items {
