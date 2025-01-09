@@ -25,17 +25,57 @@ import (
 
 // VxlanSpec defines the desired state of Vxlan.
 type VxlanSpec struct {
-	// INSERT ADDITIONAL SPEC FIELDS - desired state of cluster
-	// Important: Run "make" to regenerate code after modifying this file
+	// VXLAN Network Identifier (VNI)
+	// +kubebuilder:validation:Required
+	// +kubebuilder:validation:Minimum=1
+	// +kubebuilder:validation:Maximum=16777215
+	VNI int `json:"vni"`
 
-	// Foo is an example field of Vxlan. Edit vxlan_types.go to remove/update
-	Foo string `json:"foo,omitempty"`
+	// Master interface name
+	// +kubebuilder:validation:Optional
+	Master *string `json:"master,omitempty"`
+
+	// MTU size for the VXLAN interface
+	// defaults to 1450
+	// +kubebuilder:validation:Optional
+	MTU *int `json:"mtu,omitempty"`
+
+	// Group IP address for VXLAN tunnel
+	// +kubebuilder:validation:Optional
+	GroupIP *string `json:"groupIP,omitempty"`
+
+	// Remote IP address for VXLAN tunnel
+	// +kubebuilder:validation:Optional
+	RemoteIP *string `json:"remoteIP,omitempty"`
+
+	// Local IP address for VXLAN tunnel
+	// +kubebuilder:validation:Optional
+	LocalIP *string `json:"localIP,omitempty"`
+
+	// TTL for VXLAN packets
+	// +kubebuilder:validation:Optional
+	TTL *int `json:"ttl,omitempty"`
+
+	// UDP port for VXLAN
+	// defaults to 4789
+	// +kubebuilder:validation:Optional
+	Port *int `json:"port,omitempty"`
 }
 
 // VxlanStatus defines the observed state of Vxlan.
 type VxlanStatus struct {
-	// INSERT ADDITIONAL STATUS FIELD - define observed state of cluster
-	// Important: Run "make" to regenerate code after modifying this file
+	// Current state of the VXLAN interface (up/down)
+	State string `json:"state"`
+
+	// Interface name
+	Name string `json:"name"`
+
+	// Represents the observations of a VXLAN's current state.
+	// +patchMergeKey=type
+	// +patchStrategy=merge
+	// +listType=map
+	// +listMapKey=type
+	Conditions []metav1.Condition `json:"conditions,omitempty" patchStrategy:"merge" patchMergeKey:"type"`
 }
 
 // Vxlan is the Schema for the vxlans API.

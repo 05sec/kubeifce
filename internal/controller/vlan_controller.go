@@ -36,12 +36,6 @@ import (
 	interfacev1 "github.com/05sec/kubeifce/api/v1"
 )
 
-const (
-	InterfaceNameAnnotation = "kubeifce.lwsec.cn/interface-name"
-	VlanIDAnnotation        = "kubeifce.lwsec.cn/vlan-id"
-	VlanMasterAnnotation    = "kubeifce.lwsec.cn/vlan-master"
-)
-
 // VlanReconciler reconciles a Vlan object
 type VlanReconciler struct {
 	client.Client
@@ -73,7 +67,7 @@ func (r *VlanReconciler) Reconcile(ctx context.Context, req ctrl.Request) (ctrl.
 	log.Info("list VLAN CRDs")
 	if err := r.List(ctx, &crdVlans); err != nil {
 		log.Error(err, "failed to list VLAN CRDs", "namespace", req.Namespace, "name", req.Name)
-		return ctrl.Result{}, fmt.Errorf("failed to list VLAN CRDs: %v", err)
+		return ctrl.Result{RequeueAfter: time.Second * 5}, fmt.Errorf("failed to list VLAN CRDs: %v", err)
 	}
 	log.Info("list VLAN CRDs completed", "count", len(crdVlans.Items), "node", r.NodeName)
 
@@ -112,8 +106,8 @@ func (r *VlanReconciler) Reconcile(ctx context.Context, req ctrl.Request) (ctrl.
 
 				// remove our finalizer from the list and update it.
 				controllerutil.RemoveFinalizer(&crdVlan, finalizerName)
-				if err := r.Update(ctx, &crdVlan); err != nil {
-					return ctrl.Result{}, err
+				if err = r.Update(ctx, &crdVlan); err != nil {
+					return ctrl.Result{RequeueAfter: time.Second * 5}, err
 				}
 			}
 			continue
@@ -173,7 +167,8 @@ func (r *VlanReconciler) Reconcile(ctx context.Context, req ctrl.Request) (ctrl.
 			log.Info("finalizer added", "vlan", crdVlan.Name)
 		}
 		if err = r.Update(ctx, &crdVlan); err != nil {
-			return ctrl.Result{}, err
+			// todo: rollback
+			return ctrl.Result{RequeueAfter: time.Second * 5}, err
 		}
 		log.Info("create VLAN interface completed", "interface", crdVlanConv.Name)
 	}
