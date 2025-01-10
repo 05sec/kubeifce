@@ -142,8 +142,10 @@ func main() {
 		os.Exit(1)
 	}
 	if err = (&controller.VxlanReconciler{
-		Client: mgr.GetClient(),
-		Scheme: mgr.GetScheme(),
+		Client:   mgr.GetClient(),
+		Scheme:   mgr.GetScheme(),
+		Recorder: mgr.GetEventRecorderFor("vxlan-controller"),
+		NodeName: nodeName,
 	}).SetupWithManager(mgr); err != nil {
 		setupLog.Error(err, "unable to create controller", "controller", "Vxlan")
 		os.Exit(1)
