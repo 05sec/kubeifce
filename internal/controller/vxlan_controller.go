@@ -138,7 +138,7 @@ func (r *VxlanReconciler) Reconcile(ctx context.Context, req ctrl.Request) (ctrl
 		if crdVxlan.Spec.Port != nil {
 			crdVxlanConv.Port = *crdVxlan.Spec.Port
 		}
-		crdVxlanConv.Name = fmt.Sprintf("ki.%s.%d", fmt.Sprintf("%x", sha256.Sum256([]byte(crdVxlanConv.Master)))[:7], crdVxlanConv.VNI)
+		crdVxlanConv.Name = fmt.Sprintf("ki.%s.%d", fmt.Sprintf("%x", sha256.Sum256([]byte(crdVxlanConv.Master)))[:4], crdVxlanConv.VNI)
 
 		// 如果创建过接口，则跳过
 		if lo.SomeBy(nodeVxlans, func(nodeVxlan *netifce.Vxlan) bool {
