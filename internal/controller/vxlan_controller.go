@@ -165,6 +165,9 @@ func (r *VxlanReconciler) Reconcile(ctx context.Context, req ctrl.Request) (ctrl
 		}
 		r.Recorder.Event(&crdVxlan, corev1.EventTypeNormal, "CreatedVxlanInterface", fmt.Sprintf("Created VXLAN interface %s", crdVxlanConv.Name))
 
+		if crdVxlan.Annotations == nil {
+			crdVxlan.Annotations = make(map[string]string)
+		}
 		crdVxlan.Annotations[InterfaceNameAnnotation] = crdVxlanConv.Name
 		crdVxlan.Annotations[VxlanVNIAnnotation] = fmt.Sprintf("%d", crdVxlanConv.VNI)
 		crdVxlan.Annotations[VxlanMasterAnnotation] = crdVxlanConv.Master
