@@ -1,4 +1,4 @@
-package controller
+package v1
 
 const (
 	InterfaceNameAnnotation = "kubeifce.lwsec.cn/interface-name"

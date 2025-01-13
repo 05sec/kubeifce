@@ -168,9 +168,9 @@ func (r *VxlanReconciler) Reconcile(ctx context.Context, req ctrl.Request) (ctrl
 		if crdVxlan.Annotations == nil {
 			crdVxlan.Annotations = make(map[string]string)
 		}
-		crdVxlan.Annotations[InterfaceNameAnnotation] = crdVxlanConv.Name
-		crdVxlan.Annotations[VxlanVNIAnnotation] = fmt.Sprintf("%d", crdVxlanConv.VNI)
-		crdVxlan.Annotations[VxlanMasterAnnotation] = crdVxlanConv.Master
+		crdVxlan.Annotations[interfacev1.InterfaceNameAnnotation] = crdVxlanConv.Name
+		crdVxlan.Annotations[interfacev1.VxlanVNIAnnotation] = fmt.Sprintf("%d", crdVxlanConv.VNI)
+		crdVxlan.Annotations[interfacev1.VxlanMasterAnnotation] = crdVxlanConv.Master
 		// 创建成功后再加finalizer，因为涉及到多节点，所以不配置finalizer，要做好多节点资源状态管理才能做好资源删除
 		// if !controllerutil.ContainsFinalizer(&crdVxlan, finalizerName) {
 		//	crdVxlan.ObjectMeta.Finalizers = append(crdVxlan.ObjectMeta.Finalizers, finalizerName)
@@ -188,7 +188,7 @@ func (r *VxlanReconciler) Reconcile(ctx context.Context, req ctrl.Request) (ctrl
 			continue
 		}
 		if lo.SomeBy(crdVxlans.Items, func(crdVxlan interfacev1.Vxlan) bool {
-			return crdVxlan.Annotations[InterfaceNameAnnotation] == nodeVxlan.Name
+			return crdVxlan.Annotations[interfacev1.InterfaceNameAnnotation] == nodeVxlan.Name
 		}) {
 			continue
 		}

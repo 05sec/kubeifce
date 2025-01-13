@@ -97,7 +97,7 @@ func (r *VlanReconciler) Reconcile(ctx context.Context, req ctrl.Request) (ctrl.
 				log.Info("handle VLAN interface delete")
 				r.Recorder.Event(&crdVlan, corev1.EventTypeNormal, "DeletingVlanInterface", "Deleting VLAN interface")
 
-				err = r.VlanManager.Delete(ctx, crdVlan.Annotations[InterfaceNameAnnotation])
+				err = r.VlanManager.Delete(ctx, crdVlan.Annotations[interfacev1.InterfaceNameAnnotation])
 				if err != nil {
 					r.Recorder.Event(&crdVlan, corev1.EventTypeWarning, "FailedDeletingVlanInterface", err.Error())
 					log.Error(err, "failed to delete VLAN interface")
@@ -158,9 +158,9 @@ func (r *VlanReconciler) Reconcile(ctx context.Context, req ctrl.Request) (ctrl.
 		}
 		r.Recorder.Event(&crdVlan, corev1.EventTypeNormal, "CreatedVlanInterface", fmt.Sprintf("Created VLAN interface %s", crdVlanConv.Name))
 
-		crdVlan.Annotations[InterfaceNameAnnotation] = crdVlanConv.Name
-		crdVlan.Annotations[VlanIDAnnotation] = fmt.Sprintf("%d", crdVlanConv.Id)
-		crdVlan.Annotations[VlanMasterAnnotation] = crdVlanConv.Master
+		crdVlan.Annotations[interfacev1.InterfaceNameAnnotation] = crdVlanConv.Name
+		crdVlan.Annotations[interfacev1.VlanIDAnnotation] = fmt.Sprintf("%d", crdVlanConv.Id)
+		crdVlan.Annotations[interfacev1.VlanMasterAnnotation] = crdVlanConv.Master
 		// 创建成功后再加finalizer
 		if !controllerutil.ContainsFinalizer(&crdVlan, finalizerName) {
 			crdVlan.ObjectMeta.Finalizers = append(crdVlan.ObjectMeta.Finalizers, finalizerName)
@@ -179,7 +179,7 @@ func (r *VlanReconciler) Reconcile(ctx context.Context, req ctrl.Request) (ctrl.
 			continue
 		}
 		if lo.SomeBy(crdVlans.Items, func(crdVlan interfacev1.Vlan) bool {
-			return crdVlan.Spec.NodeName == r.NodeName && crdVlan.Annotations[InterfaceNameAnnotation] == nodeVlan.Name
+			return crdVlan.Spec.NodeName == r.NodeName && crdVlan.Annotations[interfacev1.InterfaceNameAnnotation] == nodeVlan.Name
 		}) {
 			continue
 		}
