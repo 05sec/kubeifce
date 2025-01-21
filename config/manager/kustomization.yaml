@@ -5,4 +5,4 @@ kind: Kustomization
 images:
 - name: controller
   newName: ghcr.io/05sec/kubeifce
-  newTag: 1.0.0a17
+  newTag: 1.0.0a18
