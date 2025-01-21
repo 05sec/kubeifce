@@ -150,10 +150,14 @@ func (m *VxlanManager) Create(ctx context.Context, vxlan *Vxlan) error {
 	if vxlan.Name == "" {
 		return errors.New("interface name is required")
 	}
+	//'group' requires 'dev' to be specified
+	if vxlan.Group != nil && *vxlan.Group != "" && vxlan.Master == "" {
+		return errors.New("'group' requires 'dev' to be specified")
+	}
 
+	// ip link add vxlan0 type vxlan id 100 group 239.1.1.1 dev ens18 dstport 4789
 	// 构建创建命令
 	args := []string{"link", "add",
-		"link", vxlan.Master,
 		"name", vxlan.Name,
 		"type", "vxlan",
 		"id", fmt.Sprintf("%d", vxlan.VNI)}
@@ -170,9 +174,13 @@ func (m *VxlanManager) Create(ctx context.Context, vxlan *Vxlan) error {
 	if vxlan.TTL > 0 {
 		args = append(args, "ttl", fmt.Sprintf("%d", vxlan.TTL))
 	}
-	if vxlan.Port > 0 {
-		args = append(args, "dstport", fmt.Sprintf("%d", vxlan.Port))
-	}
+	args = append(args, "dev", vxlan.Master)
+
+	args = append(args, "dstport", fmt.Sprintf("%d", vxlan.Port))
+	// vxlan: destination port not specified
+	// Will use Linux kernel default (non-standard value)
+	// Use 'dstport 4789' to get the IANA assigned value
+	// Use 'dstport 0' to get default and quiet this message
 
 	// 创建VXLAN接口
 	cmd := exec.CommandContext(ctx, "ip", args...)
