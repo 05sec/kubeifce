@@ -129,23 +129,20 @@ func (m *VlanManager) Create(ctx context.Context, vlan *Vlan) error {
 
 	// 创建VLAN接口
 	cmd := exec.CommandContext(ctx, "ip", args...)
-	if err := cmd.Run(); err != nil {
-		out, _ := cmd.CombinedOutput()
+	if out, err := cmd.CombinedOutput(); err != nil {
 		return errors.Wrap(errors.Wrap(err, string(out)), "failed to create VLAN interface")
 	}
 
 	if vlan.MTU > 0 {
 		cmd = exec.CommandContext(ctx, "ip", "link", "set", "dev", vlan.Name, "mtu", fmt.Sprintf("%d", vlan.MTU))
-		if err := cmd.Run(); err != nil {
-			out, _ := cmd.CombinedOutput()
+		if out, err := cmd.CombinedOutput(); err != nil {
 			return errors.Wrap(errors.Wrap(err, string(out)), "failed to set VLAN interface MTU")
 		}
 	}
 
 	// 启用接口
 	cmd = exec.CommandContext(ctx, "ip", "link", "set", "dev", vlan.Name, "up")
-	if err := cmd.Run(); err != nil {
-		out, _ := cmd.CombinedOutput()
+	if out, err := cmd.CombinedOutput(); err != nil {
 		return errors.Wrap(errors.Wrap(err, string(out)), "failed to set VLAN interface up")
 	}
 
@@ -167,8 +164,7 @@ func (m *VlanManager) Update(ctx context.Context, vlan *Vlan) error {
 	// 如果MTU发生变化，更新MTU
 	if vlan.MTU > 0 && vlan.MTU != existing.MTU {
 		cmd := exec.CommandContext(ctx, "ip", "link", "set", "dev", vlan.Name, "mtu", fmt.Sprintf("%d", vlan.MTU))
-		if err = cmd.Run(); err != nil {
-			out, _ := cmd.CombinedOutput()
+		if out, err := cmd.CombinedOutput(); err != nil {
 			return errors.Wrap(errors.Wrap(err, string(out)), "failed to update VLAN interface MTU")
 		}
 	}
@@ -193,8 +189,7 @@ func (m *VlanManager) Delete(ctx context.Context, name string) error {
 
 	// 删除接口
 	cmd := exec.CommandContext(ctx, "ip", "link", "delete", name)
-	if err = cmd.Run(); err != nil {
-		out, _ := cmd.CombinedOutput()
+	if out, err := cmd.CombinedOutput(); err != nil {
 		return errors.Wrap(errors.Wrap(err, string(out)), "failed to delete VLAN interface")
 	}
 

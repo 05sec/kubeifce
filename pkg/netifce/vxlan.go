@@ -176,23 +176,20 @@ func (m *VxlanManager) Create(ctx context.Context, vxlan *Vxlan) error {
 
 	// 创建VXLAN接口
 	cmd := exec.CommandContext(ctx, "ip", args...)
-	if err := cmd.Run(); err != nil {
-		out, _ := cmd.CombinedOutput()
+	if out, err := cmd.CombinedOutput(); err != nil {
 		return errors.Wrap(errors.Wrap(err, string(out)), "failed to create VXLAN interface")
 	}
 
 	if vxlan.MTU > 0 {
 		cmd = exec.CommandContext(ctx, "ip", "link", "set", "dev", vxlan.Name, "mtu", fmt.Sprintf("%d", vxlan.MTU))
-		if err := cmd.Run(); err != nil {
-			out, _ := cmd.CombinedOutput()
+		if out, err := cmd.CombinedOutput(); err != nil {
 			return errors.Wrap(errors.Wrap(err, string(out)), "failed to set VXLAN interface MTU")
 		}
 	}
 
 	// 启用接口
 	cmd = exec.CommandContext(ctx, "ip", "link", "set", "dev", vxlan.Name, "up")
-	if err := cmd.Run(); err != nil {
-		out, _ := cmd.CombinedOutput()
+	if out, err := cmd.CombinedOutput(); err != nil {
 		return errors.Wrap(errors.Wrap(err, string(out)), "failed to set VXLAN interface up")
 	}
 
@@ -214,8 +211,7 @@ func (m *VxlanManager) Update(ctx context.Context, vxlan *Vxlan) error {
 	// 如果MTU发生变化，更新MTU
 	if vxlan.MTU > 0 && vxlan.MTU != existing.MTU {
 		cmd := exec.CommandContext(ctx, "ip", "link", "set", "dev", vxlan.Name, "mtu", fmt.Sprintf("%d", vxlan.MTU))
-		if err = cmd.Run(); err != nil {
-			out, _ := cmd.CombinedOutput()
+		if out, err := cmd.CombinedOutput(); err != nil {
 			return errors.Wrap(errors.Wrap(err, string(out)), "failed to update VXLAN interface MTU")
 		}
 	}
@@ -240,8 +236,7 @@ func (m *VxlanManager) Delete(ctx context.Context, name string) error {
 
 	// 删除接口
 	cmd := exec.CommandContext(ctx, "ip", "link", "delete", name)
-	if err = cmd.Run(); err != nil {
-		out, _ := cmd.CombinedOutput()
+	if out, err := cmd.CombinedOutput(); err != nil {
 		return errors.Wrap(errors.Wrap(err, string(out)), "failed to delete VXLAN interface")
 	}
 
