@@ -150,7 +150,7 @@ func (m *VxlanManager) Create(ctx context.Context, vxlan *Vxlan) error {
 	if vxlan.Name == "" {
 		return errors.New("interface name is required")
 	}
-	//'group' requires 'dev' to be specified
+	// 'group' requires 'dev' to be specified
 	if vxlan.Group != nil && *vxlan.Group != "" && vxlan.Master == "" {
 		return errors.New("'group' requires 'dev' to be specified")
 	}
