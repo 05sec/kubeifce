@@ -35,7 +35,7 @@ import (
 	metricsserver "sigs.k8s.io/controller-runtime/pkg/metrics/server"
 	"sigs.k8s.io/controller-runtime/pkg/webhook"
 
-	interfacev1 "github.com/05sec/kubeifce/api/v1"
+	interfacev1 "github.com/05sec/kubeifce/api/ifce/v1"
 	"github.com/05sec/kubeifce/internal/controller"
 	// +kubebuilder:scaffold:imports
 )

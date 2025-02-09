@@ -19,13 +19,12 @@ package controller
 import (
 	"context"
 
+	interfacev1 "github.com/05sec/kubeifce/api/ifce/v1"
 	. "github.com/onsi/ginkgo/v2"
 	. "github.com/onsi/gomega"
 	"k8s.io/apimachinery/pkg/api/errors"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/types"
-
-	interfacev1 "github.com/05sec/kubeifce/api/v1"
 )
 
 var _ = Describe("Vlan Controller", func() {

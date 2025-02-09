@@ -23,7 +23,6 @@ import (
 	"strings"
 	"time"
 
-	"github.com/05sec/kubeifce/pkg/netifce"
 	"github.com/samber/lo"
 	corev1 "k8s.io/api/core/v1"
 	"k8s.io/apimachinery/pkg/runtime"
@@ -33,7 +32,8 @@ import (
 	"sigs.k8s.io/controller-runtime/pkg/controller/controllerutil"
 	"sigs.k8s.io/controller-runtime/pkg/log"
 
-	interfacev1 "github.com/05sec/kubeifce/api/v1"
+	v1 "github.com/05sec/kubeifce/api/ifce/v1"
+	"github.com/05sec/kubeifce/pkg/netifce"
 )
 
 // VlanReconciler reconciles a Vlan object
@@ -63,7 +63,7 @@ func (r *VlanReconciler) Reconcile(ctx context.Context, req ctrl.Request) (ctrl.
 	log.Info("Reconcile started", "namespace", req.Namespace, "name", req.Name)
 
 	// 获取CRD中所有vlan配置
-	var crdVlans interfacev1.VlanList
+	var crdVlans v1.VlanList
 	log.Info("list VLAN CRDs")
 	if err := r.List(ctx, &crdVlans); err != nil {
 		log.Error(err, "failed to list VLAN CRDs", "namespace", req.Namespace, "name", req.Name)
@@ -97,7 +97,7 @@ func (r *VlanReconciler) Reconcile(ctx context.Context, req ctrl.Request) (ctrl.
 				log.Info("handle VLAN interface delete")
 				r.Recorder.Event(&crdVlan, corev1.EventTypeNormal, "DeletingVlanInterface", "Deleting VLAN interface")
 
-				err = r.VlanManager.Delete(ctx, crdVlan.Annotations[interfacev1.InterfaceNameAnnotation])
+				err = r.VlanManager.Delete(ctx, crdVlan.Annotations[v1.InterfaceNameAnnotation])
 				if err != nil {
 					r.Recorder.Event(&crdVlan, corev1.EventTypeWarning, "FailedDeletingVlanInterface", err.Error())
 					log.Error(err, "failed to delete VLAN interface")
@@ -158,9 +158,9 @@ func (r *VlanReconciler) Reconcile(ctx context.Context, req ctrl.Request) (ctrl.
 		}
 		r.Recorder.Event(&crdVlan, corev1.EventTypeNormal, "CreatedVlanInterface", fmt.Sprintf("Created VLAN interface %s", crdVlanConv.Name))
 
-		crdVlan.Annotations[interfacev1.InterfaceNameAnnotation] = crdVlanConv.Name
-		crdVlan.Annotations[interfacev1.VlanIDAnnotation] = fmt.Sprintf("%d", crdVlanConv.Id)
-		crdVlan.Annotations[interfacev1.VlanMasterAnnotation] = crdVlanConv.Master
+		crdVlan.Annotations[v1.InterfaceNameAnnotation] = crdVlanConv.Name
+		crdVlan.Annotations[v1.VlanIDAnnotation] = fmt.Sprintf("%d", crdVlanConv.Id)
+		crdVlan.Annotations[v1.VlanMasterAnnotation] = crdVlanConv.Master
 		// 创建成功后再加finalizer
 		if !controllerutil.ContainsFinalizer(&crdVlan, finalizerName) {
 			crdVlan.ObjectMeta.Finalizers = append(crdVlan.ObjectMeta.Finalizers, finalizerName)
@@ -178,8 +178,8 @@ func (r *VlanReconciler) Reconcile(ctx context.Context, req ctrl.Request) (ctrl.
 		if !strings.HasPrefix(nodeVlan.Name, "ki.") {
 			continue
 		}
-		if lo.SomeBy(crdVlans.Items, func(crdVlan interfacev1.Vlan) bool {
-			return crdVlan.Spec.NodeName == r.NodeName && crdVlan.Annotations[interfacev1.InterfaceNameAnnotation] == nodeVlan.Name
+		if lo.SomeBy(crdVlans.Items, func(crdVlan v1.Vlan) bool {
+			return crdVlan.Spec.NodeName == r.NodeName && crdVlan.Annotations[v1.InterfaceNameAnnotation] == nodeVlan.Name
 		}) {
 			continue
 		}
@@ -213,7 +213,7 @@ func (r *VlanReconciler) getNextAvailableVlanID(ctx context.Context, master stri
 // SetupWithManager sets up the controller with the Manager.
 func (r *VlanReconciler) SetupWithManager(mgr ctrl.Manager) error {
 	return ctrl.NewControllerManagedBy(mgr).
-		For(&interfacev1.Vlan{}).
+		For(&v1.Vlan{}).
 		Named("vlan").
 		Complete(r)
 }

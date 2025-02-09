@@ -23,45 +23,54 @@ import (
 // EDIT THIS FILE!  THIS IS SCAFFOLDING FOR YOU TO OWN!
 // NOTE: json tags are required.  Any new fields you add must have json tags for the fields to be serialized.
 
-// VlanSpec defines the desired state of Vlan.
-type VlanSpec struct {
-	// INSERT ADDITIONAL SPEC FIELDS - desired state of cluster
-	// Important: Run "make" to regenerate code after modifying this file
-
-	// NodeName that the VLAN interface is created on
+// VxlanSpec defines the desired state of Vxlan.
+type VxlanSpec struct {
+	// VXLAN Network Identifier (VNI)
 	// +kubebuilder:validation:Required
-	NodeName string `json:"nodeName"`
-
-	// VLAN ID (1-4094)
-	// +kubebuilder:validation:Optional
 	// +kubebuilder:validation:Minimum=1
-	// +kubebuilder:validation:Maximum=4094
-	ID *int `json:"id,omitempty"`
+	// +kubebuilder:validation:Maximum=16777215
+	VNI int `json:"vni"`
 
 	// Master interface name
 	// +kubebuilder:validation:Optional
 	Master *string `json:"master,omitempty"`
 
-	// MTU size for the VLAN interface
-	// defaults to 1496
+	// MTU size for the VXLAN interface
+	// defaults to 1450
 	// +kubebuilder:validation:Optional
-	// +kubebuilder:validation:Minimum=68
-	// +kubebuilder:validation:Maximum=8996
 	MTU *int `json:"mtu,omitempty"`
+
+	// Group IP address for VXLAN tunnel
+	// +kubebuilder:validation:Optional
+	GroupIP *string `json:"groupIP,omitempty"`
+
+	// Remote IP address for VXLAN tunnel
+	// +kubebuilder:validation:Optional
+	RemoteIP *string `json:"remoteIP,omitempty"`
+
+	// Local IP address for VXLAN tunnel
+	// +kubebuilder:validation:Optional
+	LocalIP *string `json:"localIP,omitempty"`
+
+	// TTL for VXLAN packets
+	// +kubebuilder:validation:Optional
+	TTL *int `json:"ttl,omitempty"`
+
+	// UDP port for VXLAN
+	// defaults to 4789
+	// +kubebuilder:validation:Optional
+	Port *int `json:"port,omitempty"`
 }
 
-// VlanStatus defines the observed state of Vlan.
-type VlanStatus struct {
-	// INSERT ADDITIONAL STATUS FIELD - define observed state of cluster
-	// Important: Run "make" to regenerate code after modifying this file
-
-	// Current state of the VLAN interface (up/down)
+// VxlanStatus defines the observed state of Vxlan.
+type VxlanStatus struct {
+	// Current state of the VXLAN interface (up/down)
 	State string `json:"state"`
 
-	// ki.<md5(master)[:7]>.<vlan-ID>
+	// Interface name
 	Name string `json:"name"`
 
-	// Represents the observations of a VLAN's current state.
+	// Represents the observations of a VXLAN's current state.
 	// +patchMergeKey=type
 	// +patchStrategy=merge
 	// +listType=map
@@ -69,26 +78,28 @@ type VlanStatus struct {
 	Conditions []metav1.Condition `json:"conditions,omitempty" patchStrategy:"merge" patchMergeKey:"type"`
 }
 
-// Vlan is the Schema for the vlans API.
+// +genclient
 // +kubebuilder:object:root=true
 // +kubebuilder:subresource:status
 // +kubebuilder:resource:scope=Cluster
-type Vlan struct {
+
+// Vxlan is the Schema for the vxlans API.
+type Vxlan struct {
 	metav1.TypeMeta   `json:",inline"`
 	metav1.ObjectMeta `json:"metadata,omitempty"`
 
-	Spec   VlanSpec   `json:"spec,omitempty"`
-	Status VlanStatus `json:"status,omitempty"`
+	Spec   VxlanSpec   `json:"spec,omitempty"`
+	Status VxlanStatus `json:"status,omitempty"`
 }
 
-// VlanList contains a list of Vlan.
+// VxlanList contains a lis`t of Vxlan.
 // +kubebuilder:object:root=true
-type VlanList struct {
+type VxlanList struct {
 	metav1.TypeMeta `json:",inline"`
 	metav1.ListMeta `json:"metadata,omitempty"`
-	Items           []Vlan `json:"items"`
+	Items           []Vxlan `json:"items"`
 }
 
 func init() {
-	SchemeBuilder.Register(&Vlan{}, &VlanList{})
+	SchemeBuilder.Register(&Vxlan{}, &VxlanList{})
 }

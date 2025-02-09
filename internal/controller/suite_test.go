@@ -33,7 +33,7 @@ import (
 	logf "sigs.k8s.io/controller-runtime/pkg/log"
 	"sigs.k8s.io/controller-runtime/pkg/log/zap"
 
-	interfacev1 "github.com/05sec/kubeifce/api/v1"
+	interfacev1 "github.com/05sec/kubeifce/api/ifce/v1"
 	// +kubebuilder:scaffold:imports
 )
 

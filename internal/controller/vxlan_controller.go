@@ -23,6 +23,7 @@ import (
 	"strings"
 	"time"
 
+	v1 "github.com/05sec/kubeifce/api/ifce/v1"
 	"github.com/05sec/kubeifce/pkg/netifce"
 	"github.com/samber/lo"
 	corev1 "k8s.io/api/core/v1"
@@ -31,8 +32,6 @@ import (
 	ctrl "sigs.k8s.io/controller-runtime"
 	"sigs.k8s.io/controller-runtime/pkg/client"
 	"sigs.k8s.io/controller-runtime/pkg/log"
-
-	interfacev1 "github.com/05sec/kubeifce/api/v1"
 )
 
 // VxlanReconciler reconciles a Vxlan object
@@ -63,7 +62,7 @@ func (r *VxlanReconciler) Reconcile(ctx context.Context, req ctrl.Request) (ctrl
 	log.Info("Reconcile started", "namespace", req.Namespace, "name", req.Name)
 
 	// 获取CRD中所有vxlan配置
-	var crdVxlans interfacev1.VxlanList
+	var crdVxlans v1.VxlanList
 	log.Info("list VXLAN CRDs")
 	if err := r.List(ctx, &crdVxlans); err != nil {
 		log.Error(err, "failed to list VXLAN CRDs", "namespace", req.Namespace, "name", req.Name)
@@ -168,9 +167,9 @@ func (r *VxlanReconciler) Reconcile(ctx context.Context, req ctrl.Request) (ctrl
 		if crdVxlan.Annotations == nil {
 			crdVxlan.Annotations = make(map[string]string)
 		}
-		crdVxlan.Annotations[interfacev1.InterfaceNameAnnotation] = crdVxlanConv.Name
-		crdVxlan.Annotations[interfacev1.VxlanVNIAnnotation] = fmt.Sprintf("%d", crdVxlanConv.VNI)
-		crdVxlan.Annotations[interfacev1.VxlanMasterAnnotation] = crdVxlanConv.Master
+		crdVxlan.Annotations[v1.InterfaceNameAnnotation] = crdVxlanConv.Name
+		crdVxlan.Annotations[v1.VxlanVNIAnnotation] = fmt.Sprintf("%d", crdVxlanConv.VNI)
+		crdVxlan.Annotations[v1.VxlanMasterAnnotation] = crdVxlanConv.Master
 		// 创建成功后再加finalizer，因为涉及到多节点，所以不配置finalizer，要做好多节点资源状态管理才能做好资源删除
 		// if !controllerutil.ContainsFinalizer(&crdVxlan, finalizerName) {
 		//	crdVxlan.ObjectMeta.Finalizers = append(crdVxlan.ObjectMeta.Finalizers, finalizerName)
@@ -187,8 +186,8 @@ func (r *VxlanReconciler) Reconcile(ctx context.Context, req ctrl.Request) (ctrl
 		if !strings.HasPrefix(nodeVxlan.Name, "ki.") {
 			continue
 		}
-		if lo.SomeBy(crdVxlans.Items, func(crdVxlan interfacev1.Vxlan) bool {
-			return crdVxlan.Annotations[interfacev1.InterfaceNameAnnotation] == nodeVxlan.Name
+		if lo.SomeBy(crdVxlans.Items, func(crdVxlan v1.Vxlan) bool {
+			return crdVxlan.Annotations[v1.InterfaceNameAnnotation] == nodeVxlan.Name
 		}) {
 			continue
 		}
@@ -222,7 +221,7 @@ func (r *VxlanReconciler) getNextAvailableVNI(ctx context.Context, master string
 // SetupWithManager sets up the controller with the Manager.
 func (r *VxlanReconciler) SetupWithManager(mgr ctrl.Manager) error {
 	return ctrl.NewControllerManagedBy(mgr).
-		For(&interfacev1.Vxlan{}).
+		For(&v1.Vxlan{}).
 		Named("vxlan").
 		Complete(r)
 }
