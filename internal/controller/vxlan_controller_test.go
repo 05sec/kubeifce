@@ -58,12 +58,12 @@ var _ = Describe("Vxlan Controller", func() {
 
 		AfterEach(func() {
 			// TODO(user): Cleanup logic after each test, like removing the resource instance.
-			// resource := &interfacev1.Vxlan{}
-			// err := k8sClient.Get(ctx, typeNamespacedName, resource)
-			// Expect(err).NotTo(HaveOccurred())
-			//
-			// By("Cleanup the specific resource instance Vxlan")
-			// Expect(k8sClient.Delete(ctx, resource)).To(Succeed())
+			resource := &interfacev1.Vxlan{}
+			err := k8sClient.Get(ctx, typeNamespacedName, resource)
+			Expect(err).NotTo(HaveOccurred())
+
+			By("Cleanup the specific resource instance Vxlan")
+			Expect(k8sClient.Delete(ctx, resource)).To(Succeed())
 		})
 		It("should successfully reconcile the resource", func() {
 			By("Reconciling the created resource")
