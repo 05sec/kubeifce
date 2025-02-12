@@ -2,4 +2,5 @@
 resources:
 - interface_v1_vlan.yaml
 - interface_v1_vxlan.yaml
+- interface_v1_bridge.yaml
 # +kubebuilder:scaffold:manifestskustomizesamples

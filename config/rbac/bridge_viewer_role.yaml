@@ -1,0 +1,23 @@
+# permissions for end users to view bridges.
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRole
+metadata:
+  labels:
+    app.kubernetes.io/name: kubeifce
+    app.kubernetes.io/managed-by: kustomize
+  name: bridge-viewer-role
+rules:
+- apiGroups:
+  - interface.kubeifce.lwsec.cn
+  resources:
+  - bridges
+  verbs:
+  - get
+  - list
+  - watch
+- apiGroups:
+  - interface.kubeifce.lwsec.cn
+  resources:
+  - bridges/status
+  verbs:
+  - get

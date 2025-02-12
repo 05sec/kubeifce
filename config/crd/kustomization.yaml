@@ -4,6 +4,7 @@
 resources:
 - bases/interface.kubeifce.lwsec.cn_vlans.yaml
 - bases/interface.kubeifce.lwsec.cn_vxlans.yaml
+- bases/interface.kubeifce.lwsec.cn_bridges.yaml
 # +kubebuilder:scaffold:crdkustomizeresource
 
 patches:
