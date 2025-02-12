@@ -27,9 +27,10 @@ import (
 type BridgeSpec struct {
 	NodeNames []string `json:"nodeNames,omitempty"` // 创建 Bridge 的节点的名称
 
-	Name string `json:"name"` // 将会是“ki.<name>”
 	// +kubebuilder:validation:MinLength=1
 	// +kubebuilder:validation:MaxLength=12
+	Name string `json:"name"` // 将会是“ki.<name>”
+
 	SlaverNames []string `json:"slavors,omitempty"`
 }
 

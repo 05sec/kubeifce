@@ -50,7 +50,7 @@ var _ = Describe("Bridge Controller", func() {
 						Name:      resourceName,
 						Namespace: "default",
 					},
-					// TODO(user): Specify other spec details if needed.
+					Spec: interfacev1.BridgeSpec{Name: "test"},
 				}
 				Expect(k8sClient.Create(ctx, resource)).To(Succeed())
 			}
