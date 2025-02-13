@@ -31,6 +31,10 @@ import (
 func ForKind(kind schema.GroupVersionKind) interface{} {
 	switch kind {
 	// Group=ifce, Version=v1
+	case v1.SchemeGroupVersion.WithKind("Bridge"):
+		return &ifcev1.BridgeApplyConfiguration{}
+	case v1.SchemeGroupVersion.WithKind("BridgeSpec"):
+		return &ifcev1.BridgeSpecApplyConfiguration{}
 	case v1.SchemeGroupVersion.WithKind("Vlan"):
 		return &ifcev1.VlanApplyConfiguration{}
 	case v1.SchemeGroupVersion.WithKind("VlanSpec"):

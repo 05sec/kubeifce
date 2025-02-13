@@ -17,6 +17,14 @@ limitations under the License.
 
 package v1
 
+// BridgeListerExpansion allows custom methods to be added to
+// BridgeLister.
+type BridgeListerExpansion interface{}
+
+// BridgeNamespaceListerExpansion allows custom methods to be added to
+// BridgeNamespaceLister.
+type BridgeNamespaceListerExpansion interface{}
+
 // VlanListerExpansion allows custom methods to be added to
 // VlanLister.
 type VlanListerExpansion interface{}

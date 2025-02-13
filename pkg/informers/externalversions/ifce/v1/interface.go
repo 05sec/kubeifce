@@ -23,6 +23,8 @@ import (
 
 // Interface provides access to all the informers in this group version.
 type Interface interface {
+	// Bridges returns a BridgeInformer.
+	Bridges() BridgeInformer
 	// Vlans returns a VlanInformer.
 	Vlans() VlanInformer
 	// Vxlans returns a VxlanInformer.
@@ -38,6 +40,11 @@ type version struct {
 // New returns a new Interface.
 func New(f internalinterfaces.SharedInformerFactory, namespace string, tweakListOptions internalinterfaces.TweakListOptionsFunc) Interface {
 	return &version{factory: f, namespace: namespace, tweakListOptions: tweakListOptions}
+}
+
+// Bridges returns a BridgeInformer.
+func (v *version) Bridges() BridgeInformer {
+	return &bridgeInformer{factory: v.factory, namespace: v.namespace, tweakListOptions: v.tweakListOptions}
 }
 
 // Vlans returns a VlanInformer.

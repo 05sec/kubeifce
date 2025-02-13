@@ -17,6 +17,8 @@ limitations under the License.
 
 package v1
 
+type BridgeExpansion interface{}
+
 type VlanExpansion interface{}
 
 type VxlanExpansion interface{}

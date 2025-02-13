@@ -27,6 +27,10 @@ type FakeIfceV1 struct {
 	*testing.Fake
 }
 
+func (c *FakeIfceV1) Bridges(namespace string) v1.BridgeInterface {
+	return &FakeBridges{c, namespace}
+}
+
 func (c *FakeIfceV1) Vlans(namespace string) v1.VlanInterface {
 	return &FakeVlans{c, namespace}
 }

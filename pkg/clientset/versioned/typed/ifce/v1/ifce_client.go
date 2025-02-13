@@ -27,6 +27,7 @@ import (
 
 type IfceV1Interface interface {
 	RESTClient() rest.Interface
+	BridgesGetter
 	VlansGetter
 	VxlansGetter
 }
@@ -34,6 +35,10 @@ type IfceV1Interface interface {
 // IfceV1Client is used to interact with features provided by the ifce group.
 type IfceV1Client struct {
 	restClient rest.Interface
+}
+
+func (c *IfceV1Client) Bridges(namespace string) BridgeInterface {
+	return newBridges(c, namespace)
 }
 
 func (c *IfceV1Client) Vlans(namespace string) VlanInterface {
