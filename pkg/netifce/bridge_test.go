@@ -2,10 +2,11 @@ package netifce
 
 import (
 	"context"
+	"testing"
+
 	"github.com/samber/lo"
 	"github.com/stretchr/testify/assert"
 	"github.com/vishvananda/netlink"
-	"testing"
 )
 
 func TestBridgeManager_Reconcile(t *testing.T) {
