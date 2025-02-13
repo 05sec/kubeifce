@@ -75,7 +75,10 @@ func (m *BridgeManager) Reconcile(_ context.Context, bridge *Bridge) error {
 		if err = netlink.LinkAdd(link); err != nil {
 			return err
 		}
-		if err = netlink.LinkSetUp(link); err != nil {
+		if br, err = netlink.LinkByName(bridge.Name); err != nil {
+			return err
+		}
+		if err = netlink.LinkSetUp(br); err != nil {
 			return err
 		}
 		var errs *multierror.Error
@@ -85,16 +88,19 @@ func (m *BridgeManager) Reconcile(_ context.Context, bridge *Bridge) error {
 				errs = multierror.Append(errs, err)
 				continue
 			}
-			if err := netlink.LinkSetMaster(slave, link); err != nil {
+			if err := netlink.LinkSetMaster(slave, br); err != nil {
 				errs = multierror.Append(errs, err)
 				continue
 			}
 		}
-		return errs.ErrorOrNil()
+		if errs.ErrorOrNil() != nil {
+			return errs.ErrorOrNil()
+		}
+		return nil
 	}
 	switch br.Attrs().OperState {
 	case netlink.OperUp:
-	case netlink.OperDown:
+	case netlink.OperDown, netlink.OperUnknown:
 		if err := netlink.LinkSetUp(br); err != nil {
 			return err
 		}
