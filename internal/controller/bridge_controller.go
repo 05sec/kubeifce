@@ -83,7 +83,7 @@ func (r *BridgeReconciler) Reconcile(ctx context.Context, req ctrl.Request) (ctr
 		if bridge.Annotations == nil {
 			bridge.Annotations = map[string]string{}
 		}
-		bridgeName := BridgeName(bridge.Name)
+		bridgeName := BridgeName(bridge.Spec.Name)
 		if hostBr, ok := hostBridgeMap[bridgeName]; !ok {
 			// 创建桥接接口
 			if err = r.BridgeManager.Reconcile(ctx, &netifce.Bridge{
