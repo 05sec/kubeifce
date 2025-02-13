@@ -80,6 +80,9 @@ func (r *BridgeReconciler) Reconcile(ctx context.Context, req ctrl.Request) (ctr
 	// 找到本节点多余的桥接接口和需要创建的桥接接口
 	var errs *multierror.Error
 	for _, bridge := range bridges {
+		if bridge.Annotations == nil {
+			bridge.Annotations = map[string]string{}
+		}
 		bridgeName := BridgeName(bridge.Name)
 		if hostBr, ok := hostBridgeMap[bridgeName]; !ok {
 			// 创建桥接接口
@@ -101,6 +104,12 @@ func (r *BridgeReconciler) Reconcile(ctx context.Context, req ctrl.Request) (ctr
 			}
 			// 从map中剔除需要的接口，剩下的就是多余的接口/非kubeifce管理的接口
 			delete(hostBridgeMap, bridgeName)
+		}
+		if bridge.Annotations[v1.InterfaceNameAnnotation] != bridgeName {
+			bridge.Annotations[v1.InterfaceNameAnnotation] = bridgeName
+			if err = r.Update(ctx, &bridge); err != nil {
+				errs = multierror.Append(errs, err)
+			}
 		}
 	}
 	// 删除多余的桥接接口
