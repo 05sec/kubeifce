@@ -7,6 +7,7 @@ rules:
 - apiGroups:
   - interface.kubeifce.lwsec.cn
   resources:
+  - bridges
   - vlans
   - vxlans
   verbs:
@@ -20,6 +21,7 @@ rules:
 - apiGroups:
   - interface.kubeifce.lwsec.cn
   resources:
+  - bridges/finalizers
   - vlans/finalizers
   - vxlans/finalizers
   verbs:
@@ -27,6 +29,7 @@ rules:
 - apiGroups:
   - interface.kubeifce.lwsec.cn
   resources:
+  - bridges/status
   - vlans/status
   - vxlans/status
   verbs:

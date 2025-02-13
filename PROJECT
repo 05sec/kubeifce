@@ -10,7 +10,7 @@ repo: github.com/05sec/kubeifce
 resources:
 - api:
     crdVersion: v1
-    namespaced: true
+    namespaced: false
   controller: true
   domain: kubeifce.lwsec.cn
   group: interface
@@ -19,7 +19,7 @@ resources:
   version: v1
 - api:
     crdVersion: v1
-    namespaced: true
+    namespaced: false
   controller: true
   domain: kubeifce.lwsec.cn
   group: interface
@@ -28,7 +28,7 @@ resources:
   version: v1
 - api:
     crdVersion: v1
-    namespaced: true
+    namespaced: false
   controller: true
   domain: kubeifce.lwsec.cn
   group: interface

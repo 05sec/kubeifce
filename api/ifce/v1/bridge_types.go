@@ -42,6 +42,7 @@ type BridgeStatus struct {
 
 // +kubebuilder:object:root=true
 // +kubebuilder:subresource:status
+// +kubebuilder:resource:scope=Cluster
 
 // Bridge is the Schema for the bridges API.
 type Bridge struct {
