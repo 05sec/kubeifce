@@ -114,15 +114,15 @@ func (m *BridgeManager) Reconcile(_ context.Context, bridge *Bridge) error {
 	}
 	var errs *multierror.Error
 	for _, link := range links {
-		if link.Attrs().MasterIndex == br.Attrs().Index {
-			if lo.Contains(bridge.SlaveNames, link.Attrs().Name) {
-				continue
-			}
-			// 删除多余的桥接接口
-			if err = netlink.LinkSetNoMaster(link); err != nil {
-				errs = multierror.Append(errs, err)
-			}
-		}
+		//if link.Attrs().MasterIndex == br.Attrs().Index {
+		//	if lo.Contains(bridge.SlaveNames, link.Attrs().Name) {
+		//		continue
+		//	}
+		//	// 删除多余的桥接接口
+		//	if err = netlink.LinkSetNoMaster(link); err != nil {
+		//		errs = multierror.Append(errs, err)
+		//	}
+		//}
 		// 添加需要的桥接接口
 		if lo.Contains(bridge.SlaveNames, link.Attrs().Name) {
 			if link.Attrs().MasterIndex != br.Attrs().Index {
