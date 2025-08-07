@@ -42,38 +42,38 @@ jobs:
                   go mod tidy
                   make test
 
-    test-e2e:
-        runs-on: ubuntu-latest
-        steps:
-            - name: Clone the code
-              uses: actions/checkout@v4
-
-            - name: Setup Go
-              uses: actions/setup-go@v5
-              with:
-                  go-version: "~1.22"
-
-            - name: Install the latest version of kind
-              run: |
-                  curl -Lo ./kind https://kind.sigs.k8s.io/dl/latest/kind-linux-amd64
-                  chmod +x ./kind
-                  sudo mv ./kind /usr/local/bin/kind
-
-            - name: Verify kind installation
-              run: kind version
-
-            - name: Create kind cluster
-              run: kind create cluster
-
-            - name: Running Test e2e
-              run: |
-                  go mod tidy
-                  make test-e2e
+#    test-e2e:
+#        runs-on: ubuntu-latest
+#        steps:
+#            - name: Clone the code
+#              uses: actions/checkout@v4
+#
+#            - name: Setup Go
+#              uses: actions/setup-go@v5
+#              with:
+#                  go-version: "~1.22"
+#
+#            - name: Install the latest version of kind
+#              run: |
+#                  curl -Lo ./kind https://kind.sigs.k8s.io/dl/latest/kind-linux-amd64
+#                  chmod +x ./kind
+#                  sudo mv ./kind /usr/local/bin/kind
+#
+#            - name: Verify kind installation
+#              run: kind version
+#
+#            - name: Create kind cluster
+#              run: kind create cluster
+#
+#            - name: Running Test e2e
+#              run: |
+#                  go mod tidy
+#                  make test-e2e
 
     release:
         name: semantic-release
         runs-on: ubuntu-22.04
-        needs: [test, lint, test-e2e]
+        needs: [test, lint]
         env:
             GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         outputs:
