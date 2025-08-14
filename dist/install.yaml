@@ -1,0 +1,755 @@
+apiVersion: v1
+kind: Namespace
+metadata:
+  labels:
+    app.kubernetes.io/managed-by: kustomize
+    app.kubernetes.io/name: kubeifce
+    control-plane: controller-manager
+  name: kubeifce-system
+---
+apiVersion: apiextensions.k8s.io/v1
+kind: CustomResourceDefinition
+metadata:
+  annotations:
+    controller-gen.kubebuilder.io/version: v0.16.4
+  name: bridges.interface.kubeifce.lwsec.cn
+spec:
+  group: interface.kubeifce.lwsec.cn
+  names:
+    kind: Bridge
+    listKind: BridgeList
+    plural: bridges
+    singular: bridge
+  scope: Cluster
+  versions:
+  - name: v1
+    schema:
+      openAPIV3Schema:
+        description: Bridge is the Schema for the bridges API.
+        properties:
+          apiVersion:
+            description: |-
+              APIVersion defines the versioned schema of this representation of an object.
+              Servers should convert recognized schemas to the latest internal value, and
+              may reject unrecognized values.
+              More info: https://git.k8s.io/community/contributors/devel/sig-architecture/api-conventions.md#resources
+            type: string
+          kind:
+            description: |-
+              Kind is a string value representing the REST resource this object represents.
+              Servers may infer this from the endpoint the client submits requests to.
+              Cannot be updated.
+              In CamelCase.
+              More info: https://git.k8s.io/community/contributors/devel/sig-architecture/api-conventions.md#types-kinds
+            type: string
+          metadata:
+            type: object
+          spec:
+            description: BridgeSpec defines the desired state of Bridge.
+            properties:
+              name:
+                maxLength: 12
+                minLength: 1
+                type: string
+              nodeNames:
+                items:
+                  type: string
+                type: array
+              slavors:
+                items:
+                  type: string
+                type: array
+            required:
+            - name
+            type: object
+          status:
+            description: BridgeStatus defines the observed state of Bridge.
+            type: object
+        type: object
+    served: true
+    storage: true
+    subresources:
+      status: {}
+---
+apiVersion: apiextensions.k8s.io/v1
+kind: CustomResourceDefinition
+metadata:
+  annotations:
+    controller-gen.kubebuilder.io/version: v0.16.4
+  name: vlans.interface.kubeifce.lwsec.cn
+spec:
+  group: interface.kubeifce.lwsec.cn
+  names:
+    kind: Vlan
+    listKind: VlanList
+    plural: vlans
+    singular: vlan
+  scope: Cluster
+  versions:
+  - name: v1
+    schema:
+      openAPIV3Schema:
+        description: Vlan is the Schema for the vlans API.
+        properties:
+          apiVersion:
+            description: |-
+              APIVersion defines the versioned schema of this representation of an object.
+              Servers should convert recognized schemas to the latest internal value, and
+              may reject unrecognized values.
+              More info: https://git.k8s.io/community/contributors/devel/sig-architecture/api-conventions.md#resources
+            type: string
+          kind:
+            description: |-
+              Kind is a string value representing the REST resource this object represents.
+              Servers may infer this from the endpoint the client submits requests to.
+              Cannot be updated.
+              In CamelCase.
+              More info: https://git.k8s.io/community/contributors/devel/sig-architecture/api-conventions.md#types-kinds
+            type: string
+          metadata:
+            type: object
+          spec:
+            description: VlanSpec defines the desired state of Vlan.
+            properties:
+              id:
+                description: VLAN ID (1-4094)
+                maximum: 4094
+                minimum: 1
+                type: integer
+              master:
+                description: Master interface name
+                type: string
+              mtu:
+                description: |-
+                  MTU size for the VLAN interface
+                  defaults to 1496
+                maximum: 8996
+                minimum: 68
+                type: integer
+              nodeName:
+                description: NodeName that the VLAN interface is created on
+                type: string
+            required:
+            - nodeName
+            type: object
+          status:
+            description: VlanStatus defines the observed state of Vlan.
+            properties:
+              conditions:
+                description: Represents the observations of a VLAN's current state.
+                items:
+                  description: Condition contains details for one aspect of the current
+                    state of this API Resource.
+                  properties:
+                    lastTransitionTime:
+                      description: |-
+                        lastTransitionTime is the last time the condition transitioned from one status to another.
+                        This should be when the underlying condition changed.  If that is not known, then using the time when the API field changed is acceptable.
+                      format: date-time
+                      type: string
+                    message:
+                      description: |-
+                        message is a human readable message indicating details about the transition.
+                        This may be an empty string.
+                      maxLength: 32768
+                      type: string
+                    observedGeneration:
+                      description: |-
+                        observedGeneration represents the .metadata.generation that the condition was set based upon.
+                        For instance, if .metadata.generation is currently 12, but the .status.conditions[x].observedGeneration is 9, the condition is out of date
+                        with respect to the current state of the instance.
+                      format: int64
+                      minimum: 0
+                      type: integer
+                    reason:
+                      description: |-
+                        reason contains a programmatic identifier indicating the reason for the condition's last transition.
+                        Producers of specific condition types may define expected values and meanings for this field,
+                        and whether the values are considered a guaranteed API.
+                        The value should be a CamelCase string.
+                        This field may not be empty.
+                      maxLength: 1024
+                      minLength: 1
+                      pattern: ^[A-Za-z]([A-Za-z0-9_,:]*[A-Za-z0-9_])?$
+                      type: string
+                    status:
+                      description: status of the condition, one of True, False, Unknown.
+                      enum:
+                      - "True"
+                      - "False"
+                      - Unknown
+                      type: string
+                    type:
+                      description: type of condition in CamelCase or in foo.example.com/CamelCase.
+                      maxLength: 316
+                      pattern: ^([a-z0-9]([-a-z0-9]*[a-z0-9])?(\.[a-z0-9]([-a-z0-9]*[a-z0-9])?)*/)?(([A-Za-z0-9][-A-Za-z0-9_.]*)?[A-Za-z0-9])$
+                      type: string
+                  required:
+                  - lastTransitionTime
+                  - message
+                  - reason
+                  - status
+                  - type
+                  type: object
+                type: array
+                x-kubernetes-list-map-keys:
+                - type
+                x-kubernetes-list-type: map
+              name:
+                description: ki.<md5(master)[:7]>.<vlan-ID>
+                type: string
+              state:
+                description: Current state of the VLAN interface (up/down)
+                type: string
+            required:
+            - name
+            - state
+            type: object
+        type: object
+    served: true
+    storage: true
+    subresources:
+      status: {}
+---
+apiVersion: apiextensions.k8s.io/v1
+kind: CustomResourceDefinition
+metadata:
+  annotations:
+    controller-gen.kubebuilder.io/version: v0.16.4
+  name: vxlans.interface.kubeifce.lwsec.cn
+spec:
+  group: interface.kubeifce.lwsec.cn
+  names:
+    kind: Vxlan
+    listKind: VxlanList
+    plural: vxlans
+    singular: vxlan
+  scope: Cluster
+  versions:
+  - name: v1
+    schema:
+      openAPIV3Schema:
+        description: Vxlan is the Schema for the vxlans API.
+        properties:
+          apiVersion:
+            description: |-
+              APIVersion defines the versioned schema of this representation of an object.
+              Servers should convert recognized schemas to the latest internal value, and
+              may reject unrecognized values.
+              More info: https://git.k8s.io/community/contributors/devel/sig-architecture/api-conventions.md#resources
+            type: string
+          kind:
+            description: |-
+              Kind is a string value representing the REST resource this object represents.
+              Servers may infer this from the endpoint the client submits requests to.
+              Cannot be updated.
+              In CamelCase.
+              More info: https://git.k8s.io/community/contributors/devel/sig-architecture/api-conventions.md#types-kinds
+            type: string
+          metadata:
+            type: object
+          spec:
+            description: VxlanSpec defines the desired state of Vxlan.
+            properties:
+              groupIP:
+                description: Group IP address for VXLAN tunnel
+                type: string
+              localIP:
+                description: Local IP address for VXLAN tunnel
+                type: string
+              master:
+                description: Master interface name
+                type: string
+              mtu:
+                description: |-
+                  MTU size for the VXLAN interface
+                  defaults to 1450
+                type: integer
+              port:
+                description: |-
+                  UDP port for VXLAN
+                  defaults to 4789
+                type: integer
+              remoteIP:
+                description: Remote IP address for VXLAN tunnel
+                type: string
+              ttl:
+                description: TTL for VXLAN packets
+                type: integer
+              vni:
+                description: VXLAN Network Identifier (VNI)
+                maximum: 16777215
+                minimum: 1
+                type: integer
+            required:
+            - vni
+            type: object
+          status:
+            description: VxlanStatus defines the observed state of Vxlan.
+            properties:
+              conditions:
+                description: Represents the observations of a VXLAN's current state.
+                items:
+                  description: Condition contains details for one aspect of the current
+                    state of this API Resource.
+                  properties:
+                    lastTransitionTime:
+                      description: |-
+                        lastTransitionTime is the last time the condition transitioned from one status to another.
+                        This should be when the underlying condition changed.  If that is not known, then using the time when the API field changed is acceptable.
+                      format: date-time
+                      type: string
+                    message:
+                      description: |-
+                        message is a human readable message indicating details about the transition.
+                        This may be an empty string.
+                      maxLength: 32768
+                      type: string
+                    observedGeneration:
+                      description: |-
+                        observedGeneration represents the .metadata.generation that the condition was set based upon.
+                        For instance, if .metadata.generation is currently 12, but the .status.conditions[x].observedGeneration is 9, the condition is out of date
+                        with respect to the current state of the instance.
+                      format: int64
+                      minimum: 0
+                      type: integer
+                    reason:
+                      description: |-
+                        reason contains a programmatic identifier indicating the reason for the condition's last transition.
+                        Producers of specific condition types may define expected values and meanings for this field,
+                        and whether the values are considered a guaranteed API.
+                        The value should be a CamelCase string.
+                        This field may not be empty.
+                      maxLength: 1024
+                      minLength: 1
+                      pattern: ^[A-Za-z]([A-Za-z0-9_,:]*[A-Za-z0-9_])?$
+                      type: string
+                    status:
+                      description: status of the condition, one of True, False, Unknown.
+                      enum:
+                      - "True"
+                      - "False"
+                      - Unknown
+                      type: string
+                    type:
+                      description: type of condition in CamelCase or in foo.example.com/CamelCase.
+                      maxLength: 316
+                      pattern: ^([a-z0-9]([-a-z0-9]*[a-z0-9])?(\.[a-z0-9]([-a-z0-9]*[a-z0-9])?)*/)?(([A-Za-z0-9][-A-Za-z0-9_.]*)?[A-Za-z0-9])$
+                      type: string
+                  required:
+                  - lastTransitionTime
+                  - message
+                  - reason
+                  - status
+                  - type
+                  type: object
+                type: array
+                x-kubernetes-list-map-keys:
+                - type
+                x-kubernetes-list-type: map
+              name:
+                description: Interface name
+                type: string
+              state:
+                description: Current state of the VXLAN interface (up/down)
+                type: string
+            required:
+            - name
+            - state
+            type: object
+        type: object
+    served: true
+    storage: true
+    subresources:
+      status: {}
+---
+apiVersion: v1
+kind: ServiceAccount
+metadata:
+  labels:
+    app.kubernetes.io/managed-by: kustomize
+    app.kubernetes.io/name: kubeifce
+  name: kubeifce-controller-manager
+  namespace: kubeifce-system
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: Role
+metadata:
+  labels:
+    app.kubernetes.io/managed-by: kustomize
+    app.kubernetes.io/name: kubeifce
+  name: kubeifce-leader-election-role
+  namespace: kubeifce-system
+rules:
+- apiGroups:
+  - ""
+  resources:
+  - configmaps
+  verbs:
+  - get
+  - list
+  - watch
+  - create
+  - update
+  - patch
+  - delete
+- apiGroups:
+  - coordination.k8s.io
+  resources:
+  - leases
+  verbs:
+  - get
+  - list
+  - watch
+  - create
+  - update
+  - patch
+  - delete
+- apiGroups:
+  - ""
+  resources:
+  - events
+  verbs:
+  - create
+  - patch
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRole
+metadata:
+  labels:
+    app.kubernetes.io/managed-by: kustomize
+    app.kubernetes.io/name: kubeifce
+  name: kubeifce-bridge-editor-role
+rules:
+- apiGroups:
+  - interface.kubeifce.lwsec.cn
+  resources:
+  - bridges
+  verbs:
+  - create
+  - delete
+  - get
+  - list
+  - patch
+  - update
+  - watch
+- apiGroups:
+  - interface.kubeifce.lwsec.cn
+  resources:
+  - bridges/status
+  verbs:
+  - get
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRole
+metadata:
+  labels:
+    app.kubernetes.io/managed-by: kustomize
+    app.kubernetes.io/name: kubeifce
+  name: kubeifce-bridge-viewer-role
+rules:
+- apiGroups:
+  - interface.kubeifce.lwsec.cn
+  resources:
+  - bridges
+  verbs:
+  - get
+  - list
+  - watch
+- apiGroups:
+  - interface.kubeifce.lwsec.cn
+  resources:
+  - bridges/status
+  verbs:
+  - get
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRole
+metadata:
+  name: kubeifce-manager-role
+rules:
+- apiGroups:
+  - interface.kubeifce.lwsec.cn
+  resources:
+  - bridges
+  - vlans
+  - vxlans
+  verbs:
+  - create
+  - delete
+  - get
+  - list
+  - patch
+  - update
+  - watch
+- apiGroups:
+  - interface.kubeifce.lwsec.cn
+  resources:
+  - bridges/finalizers
+  - vlans/finalizers
+  - vxlans/finalizers
+  verbs:
+  - update
+- apiGroups:
+  - interface.kubeifce.lwsec.cn
+  resources:
+  - bridges/status
+  - vlans/status
+  - vxlans/status
+  verbs:
+  - get
+  - patch
+  - update
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRole
+metadata:
+  name: kubeifce-metrics-auth-role
+rules:
+- apiGroups:
+  - authentication.k8s.io
+  resources:
+  - tokenreviews
+  verbs:
+  - create
+- apiGroups:
+  - authorization.k8s.io
+  resources:
+  - subjectaccessreviews
+  verbs:
+  - create
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRole
+metadata:
+  name: kubeifce-metrics-reader
+rules:
+- nonResourceURLs:
+  - /metrics
+  verbs:
+  - get
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRole
+metadata:
+  labels:
+    app.kubernetes.io/managed-by: kustomize
+    app.kubernetes.io/name: kubeifce
+  name: kubeifce-vlan-editor-role
+rules:
+- apiGroups:
+  - interface.kubeifce.lwsec.cn
+  resources:
+  - vlans
+  verbs:
+  - create
+  - delete
+  - get
+  - list
+  - patch
+  - update
+  - watch
+- apiGroups:
+  - interface.kubeifce.lwsec.cn
+  resources:
+  - vlans/status
+  verbs:
+  - get
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRole
+metadata:
+  labels:
+    app.kubernetes.io/managed-by: kustomize
+    app.kubernetes.io/name: kubeifce
+  name: kubeifce-vlan-viewer-role
+rules:
+- apiGroups:
+  - interface.kubeifce.lwsec.cn
+  resources:
+  - vlans
+  verbs:
+  - get
+  - list
+  - watch
+- apiGroups:
+  - interface.kubeifce.lwsec.cn
+  resources:
+  - vlans/status
+  verbs:
+  - get
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRole
+metadata:
+  labels:
+    app.kubernetes.io/managed-by: kustomize
+    app.kubernetes.io/name: kubeifce
+  name: kubeifce-vxlan-editor-role
+rules:
+- apiGroups:
+  - interface.kubeifce.lwsec.cn
+  resources:
+  - vxlans
+  verbs:
+  - create
+  - delete
+  - get
+  - list
+  - patch
+  - update
+  - watch
+- apiGroups:
+  - interface.kubeifce.lwsec.cn
+  resources:
+  - vxlans/status
+  verbs:
+  - get
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRole
+metadata:
+  labels:
+    app.kubernetes.io/managed-by: kustomize
+    app.kubernetes.io/name: kubeifce
+  name: kubeifce-vxlan-viewer-role
+rules:
+- apiGroups:
+  - interface.kubeifce.lwsec.cn
+  resources:
+  - vxlans
+  verbs:
+  - get
+  - list
+  - watch
+- apiGroups:
+  - interface.kubeifce.lwsec.cn
+  resources:
+  - vxlans/status
+  verbs:
+  - get
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: RoleBinding
+metadata:
+  labels:
+    app.kubernetes.io/managed-by: kustomize
+    app.kubernetes.io/name: kubeifce
+  name: kubeifce-leader-election-rolebinding
+  namespace: kubeifce-system
+roleRef:
+  apiGroup: rbac.authorization.k8s.io
+  kind: Role
+  name: kubeifce-leader-election-role
+subjects:
+- kind: ServiceAccount
+  name: kubeifce-controller-manager
+  namespace: kubeifce-system
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRoleBinding
+metadata:
+  labels:
+    app.kubernetes.io/managed-by: kustomize
+    app.kubernetes.io/name: kubeifce
+  name: kubeifce-manager-rolebinding
+roleRef:
+  apiGroup: rbac.authorization.k8s.io
+  kind: ClusterRole
+  name: kubeifce-manager-role
+subjects:
+- kind: ServiceAccount
+  name: kubeifce-controller-manager
+  namespace: kubeifce-system
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRoleBinding
+metadata:
+  name: kubeifce-metrics-auth-rolebinding
+roleRef:
+  apiGroup: rbac.authorization.k8s.io
+  kind: ClusterRole
+  name: kubeifce-metrics-auth-role
+subjects:
+- kind: ServiceAccount
+  name: kubeifce-controller-manager
+  namespace: kubeifce-system
+---
+apiVersion: v1
+kind: Service
+metadata:
+  labels:
+    app.kubernetes.io/managed-by: kustomize
+    app.kubernetes.io/name: kubeifce
+    control-plane: controller-manager
+  name: kubeifce-controller-manager-metrics-service
+  namespace: kubeifce-system
+spec:
+  ports:
+  - name: https
+    port: 8443
+    protocol: TCP
+    targetPort: 8443
+  selector:
+    control-plane: controller-manager
+---
+apiVersion: apps/v1
+kind: DaemonSet
+metadata:
+  labels:
+    app.kubernetes.io/managed-by: kustomize
+    app.kubernetes.io/name: kubeifce
+    control-plane: controller-manager
+  name: kubeifce-controller-ds
+  namespace: kubeifce-system
+spec:
+  selector:
+    matchLabels:
+      control-plane: controller-manager
+  template:
+    metadata:
+      annotations:
+        kubectl.kubernetes.io/default-container: manager
+      labels:
+        control-plane: controller-manager
+    spec:
+      containers:
+      - args:
+        - --metrics-bind-address=:8443
+        - --health-probe-bind-address=:8081
+        - --metrics-bind-address=:8443
+        command:
+        - /manager
+        env:
+        - name: NODE_NAME
+          valueFrom:
+            fieldRef:
+              fieldPath: spec.nodeName
+        image: ghcr.io/05sec/kubeifce:1.0.0a27
+        livenessProbe:
+          httpGet:
+            path: /healthz
+            port: 8081
+          initialDelaySeconds: 15
+          periodSeconds: 20
+        name: manager
+        readinessProbe:
+          httpGet:
+            path: /readyz
+            port: 8081
+          initialDelaySeconds: 5
+          periodSeconds: 10
+        resources:
+          limits:
+            cpu: 500m
+            memory: 128Mi
+          requests:
+            cpu: 10m
+            memory: 64Mi
+        securityContext:
+          privileged: true
+      hostIPC: true
+      hostNetwork: true
+      hostPID: true
+      serviceAccountName: kubeifce-controller-manager
+      terminationGracePeriodSeconds: 10
